@@ -2,6 +2,9 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  turbopack: {
+    root: '../',
+  },
   async rewrites() {
     const backendProxyUrl = process.env.BACKEND_PROXY_URL ?? 'http://localhost:3001';
 

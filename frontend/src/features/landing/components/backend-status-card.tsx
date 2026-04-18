@@ -45,8 +45,8 @@ export function BackendStatusCard() {
   }, []);
 
   return (
-    <div className="rounded-3xl border border-white/60 bg-slate-950 p-6 text-white shadow-glow">
-      <p className="text-sm uppercase tracking-[0.24em] text-slate-400">Backend link</p>
+    <div className="rounded-3xl border border-white/60 bg-[#2E417B] p-6 text-white shadow-glow dark:bg-slate-950">
+      <p className="text-sm uppercase tracking-[0.24em] text-blue-200 dark:text-slate-400">Backend link</p>
       <div className="mt-4">
         {error ? (
           <p className="text-sm leading-6 text-rose-300">{error}</p>
