@@ -41,7 +41,7 @@ export function RegisterCard({
   onSubmit,
 }: RegisterCardProps) {
   return (
-    <Card className="rounded-[1.75rem] border-slate-200/80 bg-white/90 shadow-sm dark:border-slate-700/80 dark:bg-slate-900/85">
+    <Card className="rounded-[1.75rem] border-primary/15 bg-white/90 shadow-sm dark:border-slate-700/80 dark:bg-slate-900/85">
       <CardHeader>
         <CardTitle>Register</CardTitle>
         <CardDescription>Buat akun baru untuk mulai pakai Elchub.</CardDescription>
@@ -115,9 +115,9 @@ export function RegisterCard({
           </Button>
         </form>
 
-        <div className="mt-4 text-sm text-slate-600 dark:text-slate-300">
+        <div className="mt-4 text-sm text-primary/80 dark:text-slate-300">
           Sudah punya akun?{' '}
-          <Link href="/login" className="font-medium text-slate-900 hover:underline dark:text-slate-100">
+          <Link href="/login" className="font-medium text-primary hover:underline dark:text-slate-100">
             Login di sini
           </Link>
         </div>

@@ -8,7 +8,7 @@ type LabelProps = LabelHTMLAttributes<HTMLLabelElement> & {
 
 export function Label({ className, required = false, children, ...props }: LabelProps) {
   return (
-    <label className={cn('text-sm font-medium text-slate-800 dark:text-slate-200', className)} {...props}>
+    <label className={cn('text-sm font-medium text-primary dark:text-slate-200', className)} {...props}>
       <span>{children}</span>
       {required ? (
         <>

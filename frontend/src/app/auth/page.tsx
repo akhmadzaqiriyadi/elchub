@@ -20,12 +20,12 @@ export default function AuthIndexPage() {
       <div className="grid gap-3 sm:grid-cols-2">
         {links.map((item) => (
           <Link key={item.href} href={item.href}>
-            <Card className="h-full rounded-2xl border-slate-200/80 bg-white/90 transition hover:-translate-y-0.5 hover:shadow-md">
+            <Card className="h-full rounded-2xl border-primary/15 bg-white/90 transition hover:-translate-y-0.5 hover:shadow-md">
               <CardHeader>
                 <CardTitle className="text-base">{item.title}</CardTitle>
                 <CardDescription>{item.description}</CardDescription>
               </CardHeader>
-              <CardContent className="text-sm font-medium text-slate-700">Open page</CardContent>
+              <CardContent className="text-sm font-medium text-primary">Open page</CardContent>
             </Card>
           </Link>
         ))}

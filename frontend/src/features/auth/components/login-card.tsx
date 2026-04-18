@@ -29,7 +29,7 @@ export function LoginCard({
   onSubmit,
 }: LoginCardProps) {
   return (
-    <Card className="rounded-[1.75rem] border-slate-200/80 bg-white/90 shadow-sm dark:border-slate-700/80 dark:bg-slate-900/85">
+    <Card className="rounded-[1.75rem] border-primary/15 bg-white/90 shadow-sm dark:border-slate-700/80 dark:bg-slate-900/85">
       <CardHeader>
         <CardTitle>Login</CardTitle>
         <CardDescription>Masuk ke akun kamu untuk lanjut.</CardDescription>
@@ -76,11 +76,11 @@ export function LoginCard({
           </Button>
         </form>
 
-        <div className="mt-4 flex items-center justify-between text-sm text-slate-600 dark:text-slate-300">
-          <Link href="/forgot-password" className="hover:text-slate-900 dark:hover:text-slate-100">
+        <div className="mt-4 flex items-center justify-between text-sm text-primary/80 dark:text-slate-300">
+          <Link href="/forgot-password" className="hover:text-primary dark:hover:text-slate-100">
             Lupa password?
           </Link>
-          <Link href="/register" className="hover:text-slate-900 dark:hover:text-slate-100">
+          <Link href="/register" className="hover:text-primary dark:hover:text-slate-100">
             Belum punya akun?
           </Link>
         </div>

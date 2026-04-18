@@ -49,7 +49,10 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className={`${plusJakartaSans.variable} ${ibmPlexMono.variable} font-sans antialiased`}>
+      <body
+        suppressHydrationWarning
+        className={`${plusJakartaSans.variable} ${ibmPlexMono.variable} font-sans antialiased`}
+      >
         <ThemeProvider>
           <QueryProvider>
             {children}

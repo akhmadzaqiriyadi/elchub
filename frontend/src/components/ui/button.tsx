@@ -11,9 +11,9 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const buttonStyles = {
   default:
-    'bg-slate-950 text-white hover:bg-slate-800 shadow-sm shadow-slate-950/10 focus-visible:ring-slate-950 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 dark:shadow-slate-100/20 dark:focus-visible:ring-slate-300',
+    'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm shadow-primary/20 focus-visible:ring-primary dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 dark:shadow-slate-100/20 dark:focus-visible:ring-slate-300',
   secondary:
-    'bg-white text-slate-900 border border-slate-200 hover:bg-slate-50 focus-visible:ring-slate-400 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 dark:focus-visible:ring-slate-600',
+    'bg-white text-primary border border-primary/20 hover:bg-primary/5 focus-visible:ring-primary/40 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 dark:focus-visible:ring-slate-600',
 };
 
 const sizeStyles = {

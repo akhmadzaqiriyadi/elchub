@@ -35,7 +35,7 @@ export function ResetPasswordCard({
   onSubmit,
 }: ResetPasswordCardProps) {
   return (
-    <Card className="rounded-[1.75rem] border-slate-200/80 bg-white/90 shadow-sm dark:border-slate-700/80 dark:bg-slate-900/85">
+    <Card className="rounded-[1.75rem] border-primary/15 bg-white/90 shadow-sm dark:border-slate-700/80 dark:bg-slate-900/85">
       <CardHeader>
         <CardTitle>Reset Password</CardTitle>
         <CardDescription>Masukkan token dari email lalu set password baru.</CardDescription>
@@ -95,9 +95,9 @@ export function ResetPasswordCard({
           </Button>
         </form>
 
-        <div className="mt-4 text-sm text-slate-600 dark:text-slate-300">
+        <div className="mt-4 text-sm text-primary/80 dark:text-slate-300">
           Sudah selesai reset?{' '}
-          <Link href="/login" className="font-medium text-slate-900 hover:underline dark:text-slate-100">
+          <Link href="/login" className="font-medium text-primary hover:underline dark:text-slate-100">
             Login sekarang
           </Link>
         </div>

@@ -52,7 +52,7 @@ export function AuthPanel() {
   const showAuthForm = mode === 'login' || mode === 'register';
 
   return (
-    <Card className="rounded-[1.75rem] border-slate-200/80 bg-white/85">
+    <Card className="rounded-[1.75rem] border-primary/15 bg-white/85">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>
@@ -60,7 +60,7 @@ export function AuthPanel() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-5 grid grid-cols-3 gap-2 rounded-xl border border-slate-200 bg-slate-100 p-1">
+        <div className="mb-5 grid grid-cols-3 gap-2 rounded-xl border border-primary/15 bg-primary/5 p-1">
           <Button
             type="button"
             variant={mode === 'login' ? 'default' : 'secondary'}
@@ -183,8 +183,8 @@ export function AuthPanel() {
           <div className="space-y-6">
             <div className="space-y-3">
               <div className="border-b pb-3">
-                <h3 className="text-sm font-semibold text-slate-700">Lupa Password</h3>
-                <p className="text-xs text-slate-500 mt-1">Masukkan email untuk menerima link reset password</p>
+                <h3 className="text-sm font-semibold text-primary">Lupa Password</h3>
+                <p className="mt-1 text-xs text-primary/75">Masukkan email untuk menerima link reset password</p>
               </div>
 
               <form className="space-y-3" onSubmit={onForgotPasswordSubmit}>
@@ -221,8 +221,8 @@ export function AuthPanel() {
 
             <div className="space-y-3">
               <div className="border-b pb-3">
-                <h3 className="text-sm font-semibold text-slate-700">Reset Password</h3>
-                <p className="text-xs text-slate-500 mt-1">Gunakan token dari email untuk reset password</p>
+                <h3 className="text-sm font-semibold text-primary">Reset Password</h3>
+                <p className="mt-1 text-xs text-primary/75">Gunakan token dari email untuk reset password</p>
               </div>
 
               <form className="space-y-3" onSubmit={onResetPasswordSubmit}>
@@ -294,9 +294,9 @@ export function AuthPanel() {
           </div>
         )}
 
-        <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <div className="mt-6 rounded-xl border border-primary/15 bg-primary/5 p-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-slate-700">Session Check</p>
+            <p className="text-sm font-medium text-primary">Session Check</p>
             <div className="flex items-center gap-2">
               <Button
                 type="button"
@@ -333,11 +333,11 @@ export function AuthPanel() {
             </div>
           </div>
 
-          <p className="mt-2 break-all text-xs text-slate-500">Token: {token ? `${token.slice(0, 28)}...` : 'Belum ada'}</p>
+          <p className="mt-2 break-all text-xs text-primary/75">Token: {token ? `${token.slice(0, 28)}...` : 'Belum ada'}</p>
 
           <div className="mt-3">
             {me ? (
-              <div className="space-y-1 text-sm text-slate-700">
+              <div className="space-y-1 text-sm text-primary">
                 <p>
                   User: <span className="font-medium">{me.email}</span>
                 </p>
@@ -351,7 +351,7 @@ export function AuthPanel() {
                 <Skeleton className="h-4 w-1/3" />
               </div>
             ) : (
-              <p className="text-sm text-slate-500">Belum ada data session. Klik check setelah login/register.</p>
+              <p className="text-sm text-primary/75">Belum ada data session. Klik check setelah login/register.</p>
             )}
           </div>
         </div>
