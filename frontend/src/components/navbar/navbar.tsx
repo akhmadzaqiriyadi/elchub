@@ -8,15 +8,24 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { NavbarMenu } from './navbar-menu';
 import { NavbarSearch } from './navbar-search';
 import { NavbarActions } from './navbar-actions';
-import { NAVBAR_MENU_ITEMS, NAVBAR_CONFIG } from './navbar.constants';
+import { NAVBAR_MENU_ITEMS, DASHBOARD_MENU_ITEMS, NAVBAR_CONFIG } from './navbar.constants';
 import type { NavbarProps } from './navbar.types';
 
 export function Navbar({ className }: NavbarProps) {
+  const pathname = usePathname();
+  
+  // Determine if user is in dashboard
+  const isDashboard = pathname.startsWith('/dashboard');
+  
+  // Choose menu items based on current location
+  const menuItems = isDashboard ? DASHBOARD_MENU_ITEMS : NAVBAR_MENU_ITEMS;
+
   return (
     <header
       className={cn(
@@ -28,10 +37,9 @@ export function Navbar({ className }: NavbarProps) {
       )}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className={cn('flex items-center justify-between', NAVBAR_CONFIG.height)}>
-          {/* Left: Brand & Navigation */}
-          <div className="flex items-center gap-8">
-            {/* Logo & Brand */}
+        <div className={cn('flex items-center h-16')}>
+          {/* Left Section: Logo + Menu (Landing) or Logo Only (Dashboard) */}
+          <div className="flex items-center gap-8 flex-shrink-0">
             <Link
               href="/"
               className="flex items-center gap-2 text-lg font-bold text-[#2E417B] dark:text-slate-100 hover:opacity-80 transition-opacity"
@@ -48,17 +56,25 @@ export function Navbar({ className }: NavbarProps) {
               <span className="hidden sm:inline">{NAVBAR_CONFIG.brandName}</span>
             </Link>
 
-            {/* Navigation Menu */}
-            <NavbarMenu items={NAVBAR_MENU_ITEMS} className="hidden lg:flex" />
+            {/* Navigation Menu (Landing Page only) */}
+            {!isDashboard && <NavbarMenu items={menuItems} className="hidden lg:flex" />}
           </div>
 
-          {/* Center: Search (Hidden on mobile) */}
-          <div className="hidden md:flex">
-            <NavbarSearch />
-          </div>
+          {/* Center Section: Dashboard Menu or Search */}
+          {isDashboard ? (
+            <div className="flex-1 flex items-center justify-center">
+              <NavbarMenu items={menuItems} className="hidden lg:flex" />
+            </div>
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <NavbarSearch
+                placeholder="Cari kelas atau event..."
+              />
+            </div>
+          )}
 
-          {/* Right: Actions & Theme Toggle */}
-          <div className="flex items-center gap-4">
+          {/* Right Section: Actions & Theme Toggle */}
+          <div className="flex items-center gap-4 flex-shrink-0">
             {/* Actions */}
             <NavbarActions className="hidden sm:flex" />
 

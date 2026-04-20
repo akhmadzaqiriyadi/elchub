@@ -29,6 +29,29 @@ export const NAVBAR_MENU_ITEMS: NavItem[] = [
   },
 ];
 
+export const DASHBOARD_MENU_ITEMS: NavItem[] = [
+  {
+    label: 'Dashboard',
+    href: '/dashboard',
+  },
+  {
+    label: 'My Course',
+    href: '/dashboard/courses',
+  },
+  {
+    label: 'My Mentorship',
+    href: '/dashboard/mentorship',
+  },
+  {
+    label: 'Wishlist',
+    href: '/dashboard/wishlist',
+  },
+  {
+    label: 'Analytics',
+    href: '/dashboard/analytics',
+  },
+];
+
 export const NAVBAR_CONFIG = {
   brandName: 'UCH Connection',
   brandLogo: '/logo-uch.svg', // Update sesuai path logo asset

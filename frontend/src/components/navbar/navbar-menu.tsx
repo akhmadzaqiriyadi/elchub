@@ -73,17 +73,21 @@ export function NavbarMenu({ items, className }: NavbarMenuProps) {
               <div
                 className={cn(
                   'absolute left-0 mt-1 w-48 rounded-lg bg-white shadow-lg',
-                  'border border-slate-200 py-1',
+                  'border border-slate-200',
                   'dark:bg-slate-900 dark:border-slate-800',
                   'opacity-0 invisible transition-all group-hover:opacity-100 group-hover:visible',
+                  'overflow-hidden',
                 )}
               >
-                {item.children.map((child) => (
+                {item.children.map((child, index) => (
                   <NavbarLink
                     key={child.label}
                     href={child.href || '#'}
                     label={child.label}
-                    className="block px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 w-full text-left"
+                    className={cn(
+                      'block px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 w-full text-left transition-colors',
+                      index > 0 && 'border-t border-slate-100 dark:border-slate-800'
+                    )}
                   />
                 ))}
               </div>
