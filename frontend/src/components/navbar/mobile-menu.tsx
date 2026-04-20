@@ -92,84 +92,85 @@ export function MobileMenu({ isOpen, onClose, items }: MobileMenuProps) {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop - Full screen overlay */}
       {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50"
-          onClick={onClose}
-        />
-      )}
+        <>
+          {/* Full screen dark overlay */}
+          <div
+            className="fixed inset-0 w-screen h-screen top-0 left-0 z-40 bg-black/50"
+            onClick={onClose}
+          />
 
-      {/* Drawer */}
-      <div
-        className={cn(
-          'fixed top-14 sm:top-16 left-0 right-0 z-50 bg-white dark:bg-slate-900',
-          'border-b border-slate-200 dark:border-slate-800',
-          'shadow-lg transition-all duration-200 ease-out',
-          isOpen ? 'visible opacity-100' : 'invisible opacity-0',
-        )}
-      >
-        <div className="max-h-[calc(100vh-3.5rem)] sm:max-h-[calc(100vh-4rem)] overflow-y-auto">
-          <nav className="flex flex-col p-4 gap-1">
-            {items.map((item) => {
-              // Direct link for non-dropdown items
-              if (!item.isDropdown && item.href) {
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className={cn(
-                      'px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-                      'text-[#2E417B] hover:bg-slate-100',
-                      'dark:text-slate-300 dark:hover:bg-slate-800',
-                    )}
-                    onClick={onClose}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              }
+          {/* Drawer - positioned below navbar */}
+          <div
+            className={cn(
+              'fixed top-14 sm:top-16 left-0 right-0 z-50 bg-white dark:bg-slate-900',
+              'border-b border-slate-200 dark:border-slate-800',
+              'shadow-lg transition-all duration-200 ease-out',
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="max-h-[calc(100vh-3.5rem)] sm:max-h-[calc(100vh-4rem)] overflow-y-auto">
+              <nav className="flex flex-col p-4 gap-1">
+                {items.map((item) => {
+                  // Direct link for non-dropdown items
+                  if (!item.isDropdown && item.href) {
+                    return (
+                      <Link
+                        key={item.label}
+                        href={item.href}
+                        className={cn(
+                          'px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+                          'text-[#2E417B] hover:bg-slate-100',
+                          'dark:text-slate-300 dark:hover:bg-slate-800',
+                        )}
+                        onClick={onClose}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  }
 
-              // Dropdown items for mobile
-              if (item.isDropdown && item.children) {
-                return (
-                  <details key={item.label} className="group">
-                    <summary
-                      className={cn(
-                        'px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-                        'text-[#2E417B] hover:bg-slate-100 cursor-pointer',
-                        'dark:text-slate-300 dark:hover:bg-slate-800',
-                        'list-none',
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>{item.label}</span>
-                        <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
-                      </div>
-                    </summary>
-                    <div className="pl-4 pt-2 pb-2 flex flex-col gap-2">
-                      {item.children.map((child) => (
-                        <Link
-                          key={child.label}
-                          href={child.href}
+                  // Dropdown items for mobile
+                  if (item.isDropdown && item.children) {
+                    return (
+                      <details key={item.label} className="group">
+                        <summary
                           className={cn(
-                            'px-4 py-2 text-xs font-medium rounded transition-colors',
-                            'text-slate-700 hover:bg-slate-100',
-                            'dark:text-slate-400 dark:hover:bg-slate-800',
+                            'px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+                            'text-[#2E417B] hover:bg-slate-100 cursor-pointer',
+                            'dark:text-slate-300 dark:hover:bg-slate-800',
+                            'list-none',
                           )}
-                          onClick={onClose}
                         >
-                          {child.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </details>
-                );
-              }
+                          <div className="flex items-center justify-between">
+                            <span>{item.label}</span>
+                            <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+                          </div>
+                        </summary>
+                        <div className="pl-4 pt-2 pb-2 flex flex-col gap-2">
+                          {item.children.map((child) => (
+                            <Link
+                              key={child.label}
+                              href={child.href}
+                              className={cn(
+                                'px-4 py-2 text-xs font-medium rounded transition-colors',
+                                'text-slate-700 hover:bg-slate-100',
+                                'dark:text-slate-400 dark:hover:bg-slate-800',
+                              )}
+                              onClick={onClose}
+                            >
+                              {child.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </details>
+                    );
+                  }
 
-              return null;
-            })}
-          </nav>
+                  return null;
+                })}
+              </nav>
 
           {/* Divider */}
           <div className="border-t border-slate-200 dark:border-slate-800 my-2" />
@@ -232,7 +233,7 @@ export function MobileMenu({ isOpen, onClose, items }: MobileMenuProps) {
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 12a3 3 0 100-6 3 3 0 000 6z" />
-                    <path fillRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18a8 8 0 100-16 8 8 0 000 16zm0-13a3 3 0 100 6 3 3 0 000-6zm0-1a4 4 0 110 8 4 4 0 010-8z" fillRule="evenodd" />
+                    <path fillRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18a8 8 0 100-16 8 8 0 000 16zm0-13a3 3 0 100 6 3 3 0 000-6zm0-1a4 4 0 110 8 4 4 0 010-8z" />
                   </svg>
                   <span>Profile</span>
                 </button>
@@ -354,12 +355,14 @@ export function MobileMenu({ isOpen, onClose, items }: MobileMenuProps) {
             </>
           )}
 
-          {/* Auth Actions at bottom */}
-          <div className="px-2 py-4">
-            <NavbarActions className="w-full" />
+              {/* Auth Actions at bottom */}
+              <div className="px-2 py-4">
+                <NavbarActions className="w-full" />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+          </>
+        )}
 
       {/* Logout Confirm Modal */}
       <LogoutConfirmModal

@@ -32,7 +32,7 @@ export function Navbar({ className }: NavbarProps) {
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 w-full',
+        'sticky top-0 z-30 w-full',
         NAVBAR_CONFIG.bgColor,
         NAVBAR_CONFIG.borderColor,
         'backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95',
