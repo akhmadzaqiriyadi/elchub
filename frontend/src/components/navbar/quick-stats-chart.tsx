@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -23,6 +23,7 @@ type ShoppingCartProps = {
 
 export function ShoppingCart({ className }: ShoppingCartProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Mock cart items - in production, fetch from API/context
   const cartItems: CartItem[] = [
@@ -40,11 +41,27 @@ export function ShoppingCart({ className }: ShoppingCartProps) {
     },
   ];
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen]);
+
   const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
   const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className}`} ref={dropdownRef}>
       {/* Cart Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -77,7 +94,9 @@ export function ShoppingCart({ className }: ShoppingCartProps) {
 
       {/* Cart Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 border border-primary/15 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-50">
+        <div
+          className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 border border-primary/15 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-50"
+        >
           {/* Header */}
           <div className="px-4 py-3 border-b border-primary/15 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
             <h3 className="text-sm font-semibold text-primary dark:text-slate-100">
@@ -188,14 +207,6 @@ export function ShoppingCart({ className }: ShoppingCartProps) {
             </>
           )}
         </div>
-      )}
-
-      {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
-        />
       )}
     </div>
   );

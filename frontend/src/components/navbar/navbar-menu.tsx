@@ -18,6 +18,7 @@ interface NavbarMenuProps {
 
 export function NavbarMenu({ items, className }: NavbarMenuProps) {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [hoveredDropdown, setHoveredDropdown] = useState<string | null>(null);
 
   return (
     <nav className={cn('flex items-center gap-6', className)}>
@@ -35,27 +36,33 @@ export function NavbarMenu({ items, className }: NavbarMenuProps) {
         }
 
         // Dropdown items
+        const isHovering = hoveredDropdown === item.label;
+        const isOpen = openDropdown === item.label;
+
         return (
-          <div key={item.label} className="relative group">
+          <div
+            key={item.label}
+            className="relative group"
+            onMouseEnter={() => setHoveredDropdown(item.label)}
+            onMouseLeave={() => setHoveredDropdown(null)}
+          >
             <button
               className={cn(
                 'flex items-center gap-1 px-3 py-2 text-sm font-medium transition-colors',
                 'text-[#2E417B] hover:text-[#1f2a52]',
                 'dark:text-slate-300 dark:hover:text-slate-100',
-                openDropdown === item.label && 'text-[#2E417B] font-semibold',
+                (isOpen || isHovering) && 'text-[#2E417B] font-semibold dark:text-slate-100',
               )}
               onClick={() =>
-                setOpenDropdown(
-                  openDropdown === item.label ? null : item.label,
-                )
+                setOpenDropdown(isOpen ? null : item.label)
               }
             >
               {item.label}
               {item.isDropdown && (
                 <ChevronDown
                   className={cn(
-                    'h-4 w-4 transition-transform',
-                    openDropdown === item.label && 'rotate-180',
+                    'h-4 w-4 transition-transform duration-200',
+                    (isOpen || isHovering) && 'rotate-180',
                   )}
                 />
               )}

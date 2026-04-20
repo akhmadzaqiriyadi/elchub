@@ -9,7 +9,7 @@ import { useAuth } from '@/features/auth/auth-context';
 import { Button } from '@/components/ui/button';
 import { LogoutConfirmModal } from '@/components/ui/logout-confirm-modal';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 type UserAvatarMenuProps = {
   className?: string;
@@ -19,6 +19,23 @@ export function UserAvatarMenu({ className }: UserAvatarMenuProps) {
   const { user, logout, isLoading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen]);
 
   if (!user) {
     return null;
@@ -40,7 +57,7 @@ export function UserAvatarMenu({ className }: UserAvatarMenuProps) {
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className}`} ref={dropdownRef}>
       {/* Avatar Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -55,12 +72,6 @@ export function UserAvatarMenu({ className }: UserAvatarMenuProps) {
       {isOpen && (
         <div
           className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-primary/15 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-50"
-          onClickCapture={(e) => {
-            // Close menu when clicking outside
-            if (e.target === e.currentTarget) {
-              setIsOpen(false);
-            }
-          }}
         >
           {/* User Info */}
           <div className="px-4 py-3 border-b border-primary/15 dark:border-slate-700">
@@ -101,14 +112,6 @@ export function UserAvatarMenu({ className }: UserAvatarMenuProps) {
             </Button>
           </div>
         </div>
-      )}
-
-      {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
-        />
       )}
 
       {/* Logout Confirm Modal */}

@@ -23,9 +23,6 @@ export function AuthShell({ title, description, children }: AuthShellProps) {
         </div>
       </section>
 
-      <footer className="border-t border-primary/15 bg-white/70 py-5 text-center text-sm text-primary/75 backdrop-blur dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-400">
-        <div className="container">Elchub Auth • Secure access • 2026</div>
-      </footer>
     </main>
   );
 }

@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -23,6 +23,7 @@ type NotificationBellProps = {
 
 export function NotificationBell({ className }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Mock notifications - in production, fetch from API
   const notifications: Notification[] = [
@@ -48,6 +49,22 @@ export function NotificationBell({ className }: NotificationBellProps) {
       read: true,
     },
   ];
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -79,7 +96,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className}`} ref={dropdownRef}>
       {/* Notification Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -112,7 +129,9 @@ export function NotificationBell({ className }: NotificationBellProps) {
 
       {/* Notifications Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 border border-primary/15 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-50">
+        <div
+          className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 border border-primary/15 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-50"
+        >
           {/* Header */}
           <div className="px-4 py-3 border-b border-primary/15 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
             <div className="flex items-center justify-between">
@@ -194,14 +213,6 @@ export function NotificationBell({ className }: NotificationBellProps) {
             </div>
           )}
         </div>
-      )}
-
-      {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
-        />
       )}
     </div>
   );
