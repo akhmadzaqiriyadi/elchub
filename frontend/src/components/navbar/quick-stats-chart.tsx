@@ -65,13 +65,13 @@ export function ShoppingCart({ className }: ShoppingCartProps) {
       {/* Cart Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-primary/10 dark:hover:bg-slate-700 transition-colors text-[#2E417B] dark:text-slate-300"
+        className="relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full hover:bg-primary/10 dark:hover:bg-slate-700 transition-colors text-[#2E417B] dark:text-slate-300"
         title="Shopping Cart"
         aria-label="Shopping Cart"
       >
         {/* Cart Icon */}
         <svg
-          className="w-5 h-5"
+          className="w-4 h-4 sm:w-5 sm:h-5"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -86,7 +86,7 @@ export function ShoppingCart({ className }: ShoppingCartProps) {
 
         {/* Badge */}
         {itemCount > 0 && (
-          <span className="absolute top-0 right-0 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+          <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
             {itemCount > 9 ? '9+' : itemCount}
           </span>
         )}
@@ -95,7 +95,7 @@ export function ShoppingCart({ className }: ShoppingCartProps) {
       {/* Cart Dropdown */}
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 border border-primary/15 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-50"
+          className="absolute right-0 mt-2 w-72 sm:w-80 bg-white dark:bg-slate-800 border border-primary/15 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-50 mx-2 sm:mx-0 max-w-[calc(100vw-1rem)]"
         >
           {/* Header */}
           <div className="px-4 py-3 border-b border-primary/15 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">

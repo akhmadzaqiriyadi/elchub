@@ -38,11 +38,11 @@ export function BaseModal({
         />
       )}
 
-      {/* Modal Container - Absolute positioned center */}
+      {/* Modal Container - Flex centered */}
       <div className="fixed top-0 left-0 w-screen h-screen z-50 flex items-center justify-center p-4 pointer-events-none">
         <div
           className={cn(
-            'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-sm rounded-xl border border-primary/15 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800 pointer-events-auto',
+            'relative w-full max-w-sm rounded-xl border border-primary/15 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800 pointer-events-auto',
             className,
           )}
           onClick={(e) => e.stopPropagation()}

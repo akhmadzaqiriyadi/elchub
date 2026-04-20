@@ -22,8 +22,8 @@ export const SectionContainer = forwardRef<HTMLDivElement, SectionContainerProps
     };
 
     const paddingClasses = {
-      default: 'py-16 sm:py-24',
-      tight: 'py-12 sm:py-16',
+      default: 'py-8 sm:py-16 md:py-24',
+      tight: 'py-8 sm:py-12 md:py-16',
     };
 
     return (
@@ -59,13 +59,13 @@ export function SectionHeader({
   className,
 }: SectionHeaderProps) {
   return (
-    <div className={cn('mb-12 sm:mb-16', centered && 'text-center', className)}>
-      <h2 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl dark:text-white">
+    <div className={cn('mb-8 sm:mb-12 md:mb-16', centered && 'text-center', className)}>
+      <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-white">
         {title}
       </h2>
       {subtitle && (
         <p className={cn(
-          'mt-4 text-lg text-slate-600 dark:text-slate-400',
+          'mt-3 sm:mt-4 text-sm sm:text-base md:text-lg text-slate-600 dark:text-slate-400 leading-relaxed',
           centered && 'mx-auto max-w-2xl'
         )}>
           {subtitle}

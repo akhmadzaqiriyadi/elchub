@@ -6,6 +6,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -14,11 +15,13 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { NavbarMenu } from './navbar-menu';
 import { NavbarSearch } from './navbar-search';
 import { NavbarActions } from './navbar-actions';
+import { MobileMenu } from './mobile-menu';
 import { NAVBAR_MENU_ITEMS, DASHBOARD_MENU_ITEMS, NAVBAR_CONFIG } from './navbar.constants';
 import type { NavbarProps } from './navbar.types';
 
 export function Navbar({ className }: NavbarProps) {
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Determine if user is in dashboard
   const isDashboard = pathname.startsWith('/dashboard');
@@ -36,55 +39,51 @@ export function Navbar({ className }: NavbarProps) {
         className,
       )}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className={cn('flex items-center h-16')}>
-          {/* Left Section: Logo + Menu (Landing) or Logo Only (Dashboard) */}
-          <div className="flex items-center gap-8 flex-shrink-0">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-lg font-bold text-[#2E417B] dark:text-slate-100 hover:opacity-80 transition-opacity"
-            >
-              {/* Logo Image */}
-              <Image
-                src="/images/navbar/uch (1).webp"
-                alt="UCH Connection Logo"
-                width={32}
-                height={32}
-                priority
-                className="h-8 w-8"
-              />
-              <span className="hidden sm:inline">{NAVBAR_CONFIG.brandName}</span>
-            </Link>
+      <div className="mx-auto w-full max-w-7xl px-2 sm:px-4 md:px-6 lg:px-8">
+        <div className={cn('flex items-center justify-between h-12 sm:h-14 md:h-16 gap-2 sm:gap-3')}>
+          {/* Left Section: Logo with Text */}
+          <Link
+            href="/"
+            className="flex items-center gap-1 sm:gap-2 text-base sm:text-lg md:text-xl font-bold text-[#2E417B] dark:text-slate-100 hover:opacity-80 transition-opacity flex-shrink-0 min-w-fit"
+          >
+            {/* Logo Image */}
+            <Image
+              src="/images/navbar/uch (1).webp"
+              alt="UCH Connection Logo"
+              width={32}
+              height={32}
+              priority
+              className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8"
+            />
+            <span className="text-xs sm:text-sm md:text-base whitespace-nowrap">{NAVBAR_CONFIG.brandName}</span>
+          </Link>
 
-            {/* Navigation Menu (Landing Page only) */}
-            {!isDashboard && <NavbarMenu items={menuItems} className="hidden lg:flex" />}
+          {/* Center Section: Menu + Search (Desktop only) */}
+          <div className="hidden lg:flex items-center gap-4 md:gap-6 flex-1 justify-center">
+            <NavbarMenu items={menuItems} />
           </div>
 
-          {/* Center Section: Dashboard Menu or Search */}
-          {isDashboard ? (
-            <div className="flex-1 flex items-center justify-center">
-              <NavbarMenu items={menuItems} className="hidden lg:flex" />
+          {/* Right Section: Search (Desktop), Actions & Theme Toggle */}
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 flex-shrink-0 ml-auto">
+            {/* Search (Desktop only) */}
+            <div className="hidden lg:flex">
+              <NavbarSearch placeholder="Cari kelas atau event..." />
             </div>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <NavbarSearch
-                placeholder="Cari kelas atau event..."
-              />
-            </div>
-          )}
 
-          {/* Right Section: Actions & Theme Toggle */}
-          <div className="flex items-center gap-4 flex-shrink-0">
-            {/* Actions */}
-            <NavbarActions className="hidden sm:flex" />
+            {/* Actions (Desktop only - lg and up) */}
+            <NavbarActions className="hidden lg:flex" />
 
-            {/* Theme Toggle */}
+            {/* Theme Toggle (Always visible) */}
             <ThemeToggle />
 
-            {/* Mobile Menu Button */}
-            <button className="lg:hidden p-2 text-[#2E417B] dark:text-slate-300">
+            {/* Mobile Menu Button (Hidden on lg and up) */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-1 sm:p-1.5 text-[#2E417B] dark:text-slate-300 hover:opacity-80 transition-opacity"
+              aria-label="Toggle menu"
+            >
               <svg
-                className="h-6 w-6"
+                className="h-5 w-5 sm:h-6 sm:w-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -99,12 +98,14 @@ export function Navbar({ className }: NavbarProps) {
             </button>
           </div>
         </div>
-
-        {/* Mobile Search (Visible only on mobile) */}
-        <div className="md:hidden pb-3 flex justify-center">
-          <NavbarSearch />
-        </div>
       </div>
+
+      {/* Mobile Menu Drawer */}
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        items={menuItems}
+      />
     </header>
   );
 }

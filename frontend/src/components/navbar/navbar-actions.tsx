@@ -23,7 +23,7 @@ export function NavbarActions({ className }: NavbarActionsProps) {
 
   if (isAuthenticated) {
     return (
-      <div className={cn('flex items-center gap-2', className)}>
+      <div className={cn('hidden lg:flex items-center gap-2', className)}>
         {/* Shopping Cart */}
         <ShoppingCart />
 
@@ -36,12 +36,18 @@ export function NavbarActions({ className }: NavbarActionsProps) {
     );
   }
 
+  // Check if this is mobile menu (full width)
+  const isMobileMenu = className?.includes('w-full');
+
   return (
-    <div className={cn('flex items-center gap-3', className)}>
+    <div className={cn('hidden lg:flex items-center gap-3', isMobileMenu && '!flex flex-col', className)}>
       {/* Login Link */}
       <Link
         href="/login"
-        className="text-sm font-medium text-[#2E417B] hover:text-[#1f2a52] dark:text-slate-300 dark:hover:text-slate-100 transition-colors"
+        className={cn(
+          'px-4 py-2 text-sm font-medium text-center text-[#2E417B] hover:text-[#1f2a52] dark:text-slate-300 dark:hover:text-slate-100 transition-colors rounded-lg',
+          isMobileMenu && 'w-full'
+        )}
       >
         Login
       </Link>
@@ -49,7 +55,10 @@ export function NavbarActions({ className }: NavbarActionsProps) {
       {/* Daftar/Join Button */}
       <Button
         href="/register"
-        className="rounded-lg bg-[#2E417B] hover:bg-[#1f2a52] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+        className={cn(
+          'rounded-lg bg-[#2E417B] hover:bg-[#1f2a52] text-white dark:bg-blue-600 dark:hover:bg-blue-700 px-4 py-2',
+          isMobileMenu && 'w-full'
+        )}
       >
         Daftar / Join
       </Button>

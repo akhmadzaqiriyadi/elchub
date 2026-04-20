@@ -30,8 +30,8 @@ export function EventCard({ event, onAction, className }: EventCardProps) {
   return (
     <article
       className={cn(
-        'group relative overflow-hidden rounded-lg border border-slate-200 bg-white p-6 transition-all hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/50',
-        'hover:border-slate-300 dark:hover:border-slate-600',
+        'group relative overflow-hidden border border-slate-200 bg-white p-6 transition-all hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/50',
+        'hover:border-slate-300 dark:hover:border-slate-600 rounded-lg',
         className
       )}
     >

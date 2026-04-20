@@ -65,7 +65,7 @@ export function UserAvatarMenu({ className }: UserAvatarMenuProps) {
       {/* Avatar Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-center w-10 h-10 rounded-full bg-[#2E417B] text-white dark:bg-blue-600 hover:opacity-90 transition-opacity font-medium text-sm"
+        className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-[#2E417B] text-white dark:bg-blue-600 hover:opacity-90 transition-opacity font-medium text-xs sm:text-sm"
         title={user.name || user.email}
         disabled={isLoading}
       >
@@ -75,7 +75,7 @@ export function UserAvatarMenu({ className }: UserAvatarMenuProps) {
       {/* Dropdown Menu */}
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-primary/15 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-50"
+          className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-primary/15 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-50 mx-2 sm:mx-0"
         >
           {/* User Info */}
           <div className="px-4 py-3 border-b border-primary/15 dark:border-slate-700">

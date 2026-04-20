@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import type { Event } from '../types/event';
 import { EventCard } from './event-card';
 import { SectionContainer, SectionHeader } from './ui/section-container';
@@ -64,8 +65,24 @@ export function EventHighlightsSection({
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
-            <div key={event.id} data-animate>
-              <EventCard event={event} onAction={onEventAction} />
+            <div 
+              key={event.id} 
+              data-animate 
+              className="flex flex-col overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 transition-all hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-900/50"
+            >
+              {/* Banner Image */}
+              <div className="h-40 flex-shrink-0 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 overflow-hidden">
+                <Image
+                  src="/images/landing/event.webp"
+                  alt="Event Banner"
+                  width={400}
+                  height={200}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                />
+              </div>
+              
+              {/* Event Card Content */}
+              <EventCard event={event} onAction={onEventAction} className="border-0 rounded-none shadow-none hover:shadow-none" />
             </div>
           ))}
         </div>

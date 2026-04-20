@@ -50,11 +50,7 @@ export function NavbarSearch({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
-          className="flex-1 bg-transparent text-sm outline-none"
-          style={{
-            color: 'inherit',
-            width: '200px',
-          }}
+          className="bg-transparent text-sm outline-none w-40 sm:w-48 md:w-56 lg:w-72"
         />
         {query && (
           <button
