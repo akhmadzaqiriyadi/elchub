@@ -23,10 +23,11 @@ export function NavbarLink({
     <Link
       href={href}
       className={cn(
-        'text-sm font-medium transition-colors',
+        'text-sm font-medium transition-colors whitespace-nowrap',
         'text-[#2E417B] hover:text-[#1f2a52]',
         'dark:text-slate-300 dark:hover:text-slate-100',
         isActive && 'text-[#2E417B] font-semibold dark:text-slate-100',
+        'px-2 py-1',
         className,
       )}
     >
