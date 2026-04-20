@@ -8,28 +8,22 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 
 type ResetPasswordCardProps = {
-  token: string;
   password: string;
   confirmPassword: string;
-  tokenError: string;
   passwordError: string;
   confirmPasswordError: string;
   isSubmitting: boolean;
-  onTokenChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onConfirmPasswordChange: (value: string) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => Promise<void>;
 };
 
 export function ResetPasswordCard({
-  token,
   password,
   confirmPassword,
-  tokenError,
   passwordError,
   confirmPasswordError,
   isSubmitting,
-  onTokenChange,
   onPasswordChange,
   onConfirmPasswordChange,
   onSubmit,
@@ -38,23 +32,10 @@ export function ResetPasswordCard({
     <Card className="rounded-[1.75rem] border-primary/15 bg-white/90 shadow-sm dark:border-slate-700/80 dark:bg-slate-900/85">
       <CardHeader>
         <CardTitle>Reset Password</CardTitle>
-        <CardDescription>Masukkan token dari email lalu set password baru.</CardDescription>
+        <CardDescription>Set password baru untuk akun kamu.</CardDescription>
       </CardHeader>
       <CardContent>
         <form className="space-y-4" onSubmit={onSubmit}>
-          <Field>
-            <Label htmlFor="reset-token" required>
-              Token Reset
-            </Label>
-            <Input
-              id="reset-token"
-              value={token}
-              onChange={(event) => onTokenChange(event.target.value)}
-              placeholder="Token dari email"
-            />
-            <FieldError message={tokenError} />
-          </Field>
-
           <Field>
             <Label htmlFor="reset-password" required>
               Password Baru
@@ -96,7 +77,7 @@ export function ResetPasswordCard({
         </form>
 
         <div className="mt-4 text-sm text-primary/80 dark:text-slate-300">
-          Sudah selesai reset?{' '}
+          Password sudah di-reset?{' '}
           <Link href="/login" className="font-medium text-primary hover:underline dark:text-slate-100">
             Login sekarang
           </Link>

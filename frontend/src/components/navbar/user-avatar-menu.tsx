@@ -1,0 +1,124 @@
+/**
+ * User Avatar Menu component
+ * Dropdown menu showing user profile and logout option
+ */
+
+'use client';
+
+import { useAuth } from '@/features/auth/auth-context';
+import { Button } from '@/components/ui/button';
+import { LogoutConfirmModal } from '@/components/ui/logout-confirm-modal';
+import Link from 'next/link';
+import { useState } from 'react';
+
+type UserAvatarMenuProps = {
+  className?: string;
+};
+
+export function UserAvatarMenu({ className }: UserAvatarMenuProps) {
+  const { user, logout, isLoading } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  if (!user) {
+    return null;
+  }
+
+  const initials = user.name
+    ?.split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase() || user.email[0].toUpperCase();
+
+  const handleLogoutClick = () => {
+    setIsLogoutModalOpen(true);
+    setIsOpen(false);
+  };
+
+  const handleConfirmLogout = async () => {
+    await logout();
+  };
+
+  return (
+    <div className={`relative ${className}`}>
+      {/* Avatar Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-center w-10 h-10 rounded-full bg-[#2E417B] text-white dark:bg-blue-600 hover:opacity-90 transition-opacity font-medium text-sm"
+        title={user.name || user.email}
+        disabled={isLoading}
+      >
+        {initials}
+      </button>
+
+      {/* Dropdown Menu */}
+      {isOpen && (
+        <div
+          className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-primary/15 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-50"
+          onClickCapture={(e) => {
+            // Close menu when clicking outside
+            if (e.target === e.currentTarget) {
+              setIsOpen(false);
+            }
+          }}
+        >
+          {/* User Info */}
+          <div className="px-4 py-3 border-b border-primary/15 dark:border-slate-700">
+            <p className="text-sm font-medium text-[#2E417B] dark:text-slate-100">
+              {user.name || 'User'}
+            </p>
+            <p className="text-xs text-primary/70 dark:text-slate-400 truncate">
+              {user.email}
+            </p>
+          </div>
+
+          {/* Menu Items */}
+          <div className="py-2">
+            <Link
+              href="/profile"
+              className="block px-4 py-2 text-sm text-primary dark:text-slate-300 hover:bg-primary/5 dark:hover:bg-slate-700 transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              My Profile
+            </Link>
+            <Link
+              href="/settings"
+              className="block px-4 py-2 text-sm text-primary dark:text-slate-300 hover:bg-primary/5 dark:hover:bg-slate-700 transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              Settings
+            </Link>
+          </div>
+
+          {/* Logout Button */}
+          <div className="border-t border-primary/15 dark:border-slate-700 p-2">
+            <Button
+              onClick={handleLogoutClick}
+              disabled={isLoading}
+              className="w-full rounded-lg bg-red-500 hover:bg-red-600 text-white dark:bg-red-600 dark:hover:bg-red-700 text-sm"
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Logout Confirm Modal */}
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleConfirmLogout}
+        isLoading={isLoading}
+        userName={user.name || user.email}
+      />
+    </div>
+  );
+}

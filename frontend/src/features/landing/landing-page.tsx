@@ -1,6 +1,6 @@
 'use client';
 
-import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { ScrollToTop } from '@/components/ui/scroll-to-top';
 import { useRouter } from 'next/navigation';
 
 import { EventHighlightsSection } from './components/event-highlights-section';
@@ -35,11 +35,6 @@ export function LandingPage() {
 
   return (
     <main className="relative isolate min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(15,23,42,0.08),_transparent_38%),linear-gradient(180deg,_#fbf7f2_0%,_#f6efe6_100%)] text-slate-900 dark:bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.12),_transparent_36%),linear-gradient(180deg,_#0b1220_0%,_#111827_100%)] dark:text-slate-100">
-      {/* Theme Toggle - Fixed Top Right */}
-      <div className="fixed right-4 top-4 z-50 sm:right-6 sm:top-6">
-        <ThemeToggle />
-      </div>
-
       {/* Hero Section */}
       <HeroSection
         onCtaPrimary={handleHeroCtaPrimary}
@@ -62,6 +57,9 @@ export function LandingPage() {
 
       {/* Mentor Recruitment CTA */}
       <MentorRecruitmentSection onMentorCta={handleMentorCta} />
+
+      {/* Floating Scroll to Top Button */}
+      <ScrollToTop />
     </main>
   );
 }

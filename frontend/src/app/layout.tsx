@@ -4,6 +4,8 @@ import { Plus_Jakarta_Sans, IBM_Plex_Mono } from 'next/font/google';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { SonnerProvider } from '@/components/providers/sonner-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
+import { AuthProvider } from '@/features/auth/auth-context';
+import { LayoutWrapper } from '@/components/layout-wrapper';
 
 import '@/styles/globals.css';
 
@@ -55,8 +57,12 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <QueryProvider>
-            {children}
-            <SonnerProvider />
+            <AuthProvider>
+              {/* Layout wrapper - conditionally shows/hides navbar and footer */}
+              <LayoutWrapper>{children}</LayoutWrapper>
+
+              <SonnerProvider />
+            </AuthProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>

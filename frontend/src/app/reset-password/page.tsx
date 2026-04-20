@@ -28,20 +28,14 @@ export default function ResetPasswordPage() {
   return (
     <AuthShell
       title="Reset password"
-      description="Masukkan token dari email lalu buat password baru."
+      description="Set password baru untuk akun kamu."
     >
       <ResetPasswordCard
-        token={resetTokenInput}
         password={resetPasswordInput}
         confirmPassword={resetConfirmPasswordInput}
-        tokenError={recoveryErrors.resetToken}
         passwordError={recoveryErrors.resetPassword}
         confirmPasswordError={recoveryErrors.resetConfirmPassword}
         isSubmitting={isSubmittingReset}
-        onTokenChange={(value) => {
-          setResetTokenInput(value);
-          setRecoveryErrors((previous) => ({ ...previous, resetToken: '' }));
-        }}
         onPasswordChange={(value) => {
           setResetPasswordInput(value);
           setRecoveryErrors((previous) => ({ ...previous, resetPassword: '' }));

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { ApiClientError } from "@/lib/api-client";
+import { useAuth } from "../auth-context";
 
 import {
   forgotPassword,
@@ -37,6 +38,7 @@ import type { AuthUser } from "../types";
 
 export function useAuthPanel() {
   const queryClient = useQueryClient();
+  const { setToken: setGlobalToken } = useAuth();
   const [mode, setMode] = useState<Mode>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -145,14 +147,12 @@ export function useAuthPanel() {
 
   function persistToken(nextToken: string) {
     setToken(nextToken);
-    localStorage.setItem(authTokenStorageKey, nextToken);
-    document.cookie = `${authTokenCookieKey}=${encodeURIComponent(nextToken)}; Path=/; Max-Age=900; SameSite=Lax`;
+    setGlobalToken(nextToken); // Update global auth context for navbar refresh
   }
 
   function clearSession() {
     setToken("");
-    localStorage.removeItem(authTokenStorageKey);
-    document.cookie = `${authTokenCookieKey}=; Path=/; Max-Age=0; SameSite=Lax`;
+    setGlobalToken(""); // Update global auth context
     queryClient.removeQueries({ queryKey: ["auth"] });
   }
 
