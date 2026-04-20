@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { ApiClientError } from "@/lib/api-client";
@@ -38,6 +39,7 @@ import type { AuthUser } from "../types";
 
 export function useAuthPanel() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { setToken: setGlobalToken } = useAuth();
   const [mode, setMode] = useState<Mode>("login");
   const [name, setName] = useState("");
@@ -156,6 +158,20 @@ export function useAuthPanel() {
     queryClient.removeQueries({ queryKey: ["auth"] });
   }
 
+  function resolvePostAuthPath() {
+    if (typeof window === "undefined") {
+      return "/dashboard";
+    }
+
+    const nextPath = new URLSearchParams(window.location.search).get("next");
+
+    if (!nextPath || !nextPath.startsWith("/")) {
+      return "/dashboard";
+    }
+
+    return nextPath;
+  }
+
   function applyAuthSuccess(
     nextToken: string,
     user: AuthUser,
@@ -165,6 +181,7 @@ export function useAuthPanel() {
     queryClient.setQueryData(["auth", "me", nextToken], user);
     toast.success(successMessage);
     resetForm();
+    router.replace(resolvePostAuthPath());
   }
 
   function applyAuthError(error: unknown) {

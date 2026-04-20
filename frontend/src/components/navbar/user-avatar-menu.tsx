@@ -9,6 +9,7 @@ import { useAuth } from '@/features/auth/auth-context';
 import { Button } from '@/components/ui/button';
 import { LogoutConfirmModal } from '@/components/ui/logout-confirm-modal';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 
 type UserAvatarMenuProps = {
@@ -17,6 +18,7 @@ type UserAvatarMenuProps = {
 
 export function UserAvatarMenu({ className }: UserAvatarMenuProps) {
   const { user, logout, isLoading } = useAuth();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -54,6 +56,8 @@ export function UserAvatarMenu({ className }: UserAvatarMenuProps) {
 
   const handleConfirmLogout = async () => {
     await logout();
+    setIsLogoutModalOpen(false);
+    router.replace('/login');
   };
 
   return (
