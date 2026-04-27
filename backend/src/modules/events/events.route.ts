@@ -406,19 +406,27 @@ export const eventsManagementRoute = new Elysia({ name: 'events-management-route
         return authResult.body;
       }
 
-      const data = await listEvents({
-        q: query.q,
-        typeSlug: query.typeSlug,
-        modeSlug: query.modeSlug,
-        statusCode: query.statusCode,
-        page: query.page,
-        limit: query.limit,
-      });
+      try {
+        const data = await listEvents({
+          q: query.q,
+          typeSlug: query.typeSlug,
+          modeSlug: query.modeSlug,
+          statusCode: query.statusCode,
+          page: query.page,
+          limit: query.limit,
+        });
 
-      return {
-        success: true as const,
-        data,
-      };
+        return {
+          success: true as const,
+          data,
+        };
+      } catch (error) {
+        set.status = 500;
+        return {
+          success: false as const,
+          message: error instanceof Error ? error.message : 'Failed to fetch events',
+        };
+      }
     },
     {
       query: listEventsQuerySchema,
@@ -634,12 +642,20 @@ export const eventsManagementRoute = new Elysia({ name: 'events-management-route
         return authResult.body;
       }
 
-      const data = await getEventMasterData();
+      try {
+        const data = await getEventMasterData();
 
-      return {
-        success: true as const,
-        data,
-      };
+        return {
+          success: true as const,
+          data,
+        };
+      } catch (error) {
+        set.status = 500;
+        return {
+          success: false as const,
+          message: error instanceof Error ? error.message : 'Failed to fetch master data',
+        };
+      }
     },
     {
       response: {

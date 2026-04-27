@@ -157,18 +157,26 @@ export const usersManagementRoute = new Elysia({ name: 'users-management-route' 
         return authResult.body;
       }
 
-      const data = await listUsers({
-        q: query.q,
-        role: query.role,
-        isActive: query.isActive,
-        page: query.page,
-        limit: query.limit,
-      });
+      try {
+        const data = await listUsers({
+          q: query.q,
+          role: query.role,
+          isActive: query.isActive,
+          page: query.page,
+          limit: query.limit,
+        });
 
-      return {
-        success: true as const,
-        data,
-      };
+        return {
+          success: true as const,
+          data,
+        };
+      } catch (error) {
+        set.status = 500;
+        return {
+          success: false as const,
+          message: error instanceof Error ? error.message : 'Failed to fetch users',
+        };
+      }
     },
     {
       query: listUsersQuerySchema,

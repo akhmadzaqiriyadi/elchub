@@ -2,3 +2,8 @@ export { ManagementEventsPanel } from './components/management-events-panel';
 export { MasterDataPanel } from './components/master-data-panel';
 export { ManagementAccessGuard } from './components/management-access-guard';
 export { ManagementEventCreatePage } from './components/management-event-create-page';
+export { ManagementUsersPanel } from './components/management-users-panel';
+export { UserTableRow } from './components/user-table-row';
+export { UserFormModal } from './components/user-form-modal';
+export { UserDeleteConfirmModal } from './components/user-delete-confirm-modal';
+export { UserFilters } from './components/user-filters';

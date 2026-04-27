@@ -12,6 +12,12 @@ import type {
   MasterDataListParams,
   MasterDataMutationInput,
   MasterDataMutationPayload,
+  UserListParams,
+  UserListPayload,
+  UserDetailPayload,
+  CreateUserInput,
+  UpdateUserInput,
+  UserMutationPayload,
 } from './types';
 
 function toQueryString(params: EventListParams) {
@@ -113,6 +119,60 @@ export function updateMasterData(kind: MasterDataKind, id: string, input: Master
 
 export function deleteMasterData(kind: MasterDataKind, id: string, token: string) {
   return apiRequest<MasterDataMutationPayload>(`/management/master-data/${kind}/${id}`, {
+    method: 'DELETE',
+    token,
+  });
+}
+
+// ============================================================================
+// Users Management API
+// ============================================================================
+
+function toUserListQueryString(params: UserListParams) {
+  const searchParams = new URLSearchParams();
+
+  if (params.q) searchParams.set('q', params.q);
+  if (params.role) searchParams.set('role', params.role);
+  if (params.isActive !== undefined) searchParams.set('isActive', String(params.isActive));
+  if (params.page) searchParams.set('page', String(params.page));
+  if (params.limit) searchParams.set('limit', String(params.limit));
+
+  const built = searchParams.toString();
+  return built ? `?${built}` : '';
+}
+
+export function getManagementUsers(params: UserListParams) {
+  return apiRequest<UserListPayload>(`/management/users${toUserListQueryString(params)}`, {
+    method: 'GET',
+    token: params.token,
+  });
+}
+
+export function getManagementUserById(userId: string, token: string) {
+  return apiRequest<UserDetailPayload>(`/management/users/${userId}`, {
+    method: 'GET',
+    token,
+  });
+}
+
+export function createManagementUser(input: CreateUserInput, token: string) {
+  return apiRequest<UserMutationPayload>('/management/users', {
+    method: 'POST',
+    body: input,
+    token,
+  });
+}
+
+export function updateManagementUser(userId: string, input: UpdateUserInput, token: string) {
+  return apiRequest<UserMutationPayload>(`/management/users/${userId}`, {
+    method: 'PATCH',
+    body: input,
+    token,
+  });
+}
+
+export function deleteManagementUser(userId: string, token: string) {
+  return apiRequest<UserMutationPayload>(`/management/users/${userId}`, {
     method: 'DELETE',
     token,
   });

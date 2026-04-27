@@ -146,3 +146,64 @@ export type MasterDataMutationPayload = {
   success: boolean;
   message: string;
 };
+
+// ============================================================================
+// Users Management Types
+// ============================================================================
+
+export type UserRole = 'USER' | 'ORGANIZER' | 'MENTOR' | 'ADMIN';
+
+export type UserListItem = {
+  id: string;
+  name: string | null;
+  email: string;
+  role: UserRole;
+  isActive: boolean;
+  emailVerifiedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type UserListPayload = {
+  success: true;
+  data: {
+    items: UserListItem[];
+    pagination: PaginationMeta;
+  };
+};
+
+export type UserDetailPayload = {
+  success: true;
+  data: UserListItem;
+};
+
+export type UserListParams = {
+  token?: string;
+  q?: string;
+  role?: UserRole;
+  isActive?: boolean;
+  page?: number;
+  limit?: number;
+};
+
+export type CreateUserInput = {
+  email: string;
+  password: string;
+  name?: string;
+  role?: UserRole;
+  isActive?: boolean;
+};
+
+export type UpdateUserInput = {
+  name?: string;
+  email?: string;
+  password?: string;
+  role?: UserRole;
+  isActive?: boolean;
+};
+
+export type UserMutationPayload = {
+  success: boolean;
+  message?: string;
+  data?: UserListItem;
+};
