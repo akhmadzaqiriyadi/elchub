@@ -52,6 +52,25 @@ export const DASHBOARD_MENU_ITEMS: NavItem[] = [
   },
 ];
 
+export const MANAGEMENT_MENU_ITEMS: NavItem[] = [
+  {
+    label: 'Management',
+    href: '/management',
+  },
+  {
+    label: 'Master Data',
+    href: '/management/master-data',
+  },
+  {
+    label: 'Event Manager',
+    href: '/management/events',
+  },
+  {
+    label: 'Users',
+    href: '/management/users',
+  },
+];
+
 export const NAVBAR_CONFIG = {
   brandName: 'UCH Connection',
   brandLogo: '/logo-uch.svg', // Update sesuai path logo asset

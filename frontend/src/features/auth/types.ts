@@ -1,8 +1,10 @@
+export type UserRole = 'USER' | 'ORGANIZER' | 'MENTOR' | 'ADMIN' | (string & {});
+
 export type AuthUser = {
   id: string;
   name: string | null;
   email: string;
-  role: string;
+  role: UserRole;
   createdAt: string;
   updatedAt: string;
 };

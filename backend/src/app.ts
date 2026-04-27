@@ -6,8 +6,10 @@ import { env } from './config/env';
 import { logger } from './lib/logger';
 import { securityHeaders } from './lib/security-headers';
 import { authRoute } from './modules/auth/auth.route';
+import { eventsManagementRoute, eventsRoute } from './modules/events/events.route';
 import { healthRoute } from './modules/health/health.route';
 import { rootRoute } from './modules/root/root.route';
+import { usersManagementRoute } from './modules/users/users.route';
 
 function parseCorsOrigins(origin: string) {
   const trimmed = origin.trim();
@@ -81,7 +83,10 @@ export const app = new Elysia({ name: 'elchub-backend' })
   })
   .use(rootRoute)
   .use(healthRoute)
-  .use(authRoute);
+  .use(eventsRoute)
+  .use(eventsManagementRoute)
+  .use(authRoute)
+  .use(usersManagementRoute);
 
 export function buildApp() {
   return app;

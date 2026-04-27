@@ -9,6 +9,8 @@ datasource db {
 
 enum UserRole {
   USER
+  ORGANIZER
+  MENTOR
   ADMIN
 }
 
@@ -25,8 +27,168 @@ model User {
 
   sessions        Session[]
   passwordResetTokens PasswordResetToken[]
+  organizedEvents Event[]   @relation("EventOrganizer")
+  registrations   EventRegistration[]
 
   @@map("users")
+}
+
+model EventType {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events    Event[]
+
+  @@index([isActive, sortOrder])
+  @@map("event_types")
+}
+
+model EventTopic {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  eventTopics EventTopicMap[]
+
+  @@index([isActive, sortOrder])
+  @@map("event_topics")
+}
+
+model EventMode {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events    Event[]
+
+  @@index([isActive, sortOrder])
+  @@map("event_modes")
+}
+
+model EventLevel {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events    Event[]
+
+  @@index([isActive, sortOrder])
+  @@map("event_levels")
+}
+
+model EventStatus {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events    Event[]
+
+  @@index([isActive, sortOrder])
+  @@map("event_statuses")
+}
+
+model RegistrationStatus {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  registrations EventRegistration[]
+
+  @@index([isActive, sortOrder])
+  @@map("registration_statuses")
+}
+
+model Event {
+  id                  String   @id @default(cuid())
+  title               String
+  slug                String   @unique
+  description         String?
+  meetLink            String?
+  startAt             DateTime?
+  endAt               DateTime?
+  timezone            String?  @default("Asia/Jakarta")
+  capacity            Int?
+  registrationOpenAt  DateTime?
+  registrationCloseAt DateTime?
+  organizerId         String
+  typeId              String
+  modeId              String
+  levelId             String?
+  statusId            String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  organizer     User        @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Restrict)
+  type          EventType   @relation(fields: [typeId], references: [id], onDelete: Restrict)
+  mode          EventMode   @relation(fields: [modeId], references: [id], onDelete: Restrict)
+  level         EventLevel? @relation(fields: [levelId], references: [id], onDelete: SetNull)
+  status        EventStatus @relation(fields: [statusId], references: [id], onDelete: Restrict)
+  topics        EventTopicMap[]
+  registrations EventRegistration[]
+
+  @@index([organizerId])
+  @@index([typeId])
+  @@index([modeId])
+  @@index([levelId])
+  @@index([statusId])
+  @@index([startAt])
+  @@map("events")
+}
+
+model EventTopicMap {
+  eventId    String
+  topicId    String
+  createdAt  DateTime @default(now())
+
+  event Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  topic EventTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, topicId])
+  @@index([topicId])
+  @@map("event_topic_map")
+}
+
+model EventRegistration {
+  id          String   @id @default(cuid())
+  eventId     String
+  userId      String
+  statusId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  event   Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status  RegistrationStatus @relation(fields: [statusId], references: [id], onDelete: Restrict)
+
+  @@unique([eventId, userId])
+  @@index([userId])
+  @@index([statusId])
+  @@map("event_registrations")
 }
 
 model PasswordResetToken {

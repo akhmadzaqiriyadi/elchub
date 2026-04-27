@@ -12,22 +12,32 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { useAuth } from '@/features/auth/auth-context';
 import { NavbarMenu } from './navbar-menu';
 import { NavbarSearch } from './navbar-search';
 import { NavbarActions } from './navbar-actions';
 import { MobileMenu } from './mobile-menu';
-import { NAVBAR_MENU_ITEMS, DASHBOARD_MENU_ITEMS, NAVBAR_CONFIG } from './navbar.constants';
+import { NAVBAR_MENU_ITEMS, DASHBOARD_MENU_ITEMS, MANAGEMENT_MENU_ITEMS, NAVBAR_CONFIG } from './navbar.constants';
 import type { NavbarProps } from './navbar.types';
+
+const managementRoles = new Set(['ADMIN', 'ORGANIZER']);
 
 export function Navbar({ className }: NavbarProps) {
   const pathname = usePathname();
+  const { user, isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Determine if user is in dashboard
   const isDashboard = pathname.startsWith('/dashboard');
   
-  // Choose menu items based on current location
-  const menuItems = isDashboard ? DASHBOARD_MENU_ITEMS : NAVBAR_MENU_ITEMS;
+  const isManagementRole = Boolean(isAuthenticated && user?.role && managementRoles.has(user.role));
+
+  // Choose menu items based on role and location
+  const menuItems = isManagementRole
+    ? MANAGEMENT_MENU_ITEMS
+    : isDashboard
+      ? DASHBOARD_MENU_ITEMS
+      : NAVBAR_MENU_ITEMS;
 
   return (
     <header

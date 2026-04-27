@@ -1,0 +1,3 @@
+-- Add new user roles for RBAC expansion.
+ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'ORGANIZER';
+ALTER TYPE "UserRole" ADD VALUE IF NOT EXISTS 'MENTOR';

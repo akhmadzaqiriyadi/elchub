@@ -5,6 +5,7 @@ import { env } from '../../config/env';
 import { verifyAccessToken } from '../../lib/auth';
 import { comparePassword, createAccessToken, hashPassword } from '../../lib/auth';
 import { prisma } from '../../lib/prisma';
+import { requireAuth } from '../../lib/rbac';
 import { sendPasswordResetEmail, sendWelcomeEmail } from '../../lib/mailer';
 import { authLoginSchema, authRegisterSchema, forgotPasswordSchema, resetPasswordSchema } from './auth.schema';
 
@@ -59,95 +60,6 @@ async function createAccessSession(userId: string, accessToken: string) {
   });
 }
 
-async function resolveAuthorizedSession(headers: Record<string, string | undefined>) {
-  const authorizationHeader = headers.authorization;
-
-  if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
-    return {
-      ok: false as const,
-      status: 401,
-      body: {
-        success: false,
-        message: 'Token otorisasi tidak ditemukan',
-      },
-    };
-  }
-
-  const token = authorizationHeader.slice('Bearer '.length);
-  let verifiedToken: Awaited<ReturnType<typeof verifyAccessToken>>;
-
-  try {
-    verifiedToken = await verifyAccessToken(token);
-  } catch (error) {
-    const errorCode =
-      typeof error === 'object' && error !== null && 'code' in error && typeof (error as { code?: unknown }).code === 'string'
-        ? (error as { code: string }).code
-        : undefined;
-
-    if (errorCode === 'ERR_JWT_EXPIRED') {
-      return {
-        ok: false as const,
-        status: 401,
-        body: {
-          success: false,
-          message: 'Token otorisasi sudah kedaluwarsa',
-        },
-      };
-    }
-
-    return {
-      ok: false as const,
-      status: 401,
-      body: {
-        success: false,
-        message: 'Token otorisasi tidak valid',
-      },
-    };
-  }
-
-  const userId = verifiedToken.payload.sub;
-
-  if (!userId) {
-    return {
-      ok: false as const,
-      status: 401,
-      body: {
-        success: false,
-        message: 'Token otorisasi tidak valid',
-      },
-    };
-  }
-
-  const session = await prisma.session.findFirst({
-    where: {
-      userId,
-      refreshTokenHash: hashAccessToken(token),
-      revokedAt: null,
-      expiresAt: {
-        gt: new Date(),
-      },
-    },
-  });
-
-  if (!session) {
-    return {
-      ok: false as const,
-      status: 401,
-      body: {
-        success: false,
-        message: 'Sesi tidak valid atau sudah kedaluwarsa',
-      },
-    };
-  }
-
-  return {
-    ok: true as const,
-    token,
-    userId,
-    tokenHash: hashAccessToken(token),
-  };
-}
-
 export async function registerUser(input: unknown) {
   const data = authRegisterSchema.parse(input);
 
@@ -162,7 +74,7 @@ export async function registerUser(input: unknown) {
       status: 409,
       body: {
         success: false,
-        message: 'Email sudah terdaftar',
+        message: 'Email is already registered',
       },
     };
   }
@@ -216,7 +128,7 @@ export async function loginUser(input: unknown) {
       status: 401,
       body: {
         success: false,
-        message: 'Email atau password tidak valid',
+        message: 'Invalid email or password',
       },
     };
   }
@@ -228,7 +140,7 @@ export async function loginUser(input: unknown) {
       status: 401,
       body: {
         success: false,
-        message: 'Email atau password tidak valid',
+        message: 'Invalid email or password',
       },
     };
   }
@@ -254,7 +166,7 @@ export async function loginUser(input: unknown) {
 }
 
 export async function getAuthenticatedUser(headers: Record<string, string | undefined>) {
-  const sessionResult = await resolveAuthorizedSession(headers);
+  const sessionResult = await requireAuth(headers);
 
   if (!sessionResult.ok) {
     return {
@@ -263,26 +175,12 @@ export async function getAuthenticatedUser(headers: Record<string, string | unde
     };
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: sessionResult.userId },
-  });
-
-  if (!user) {
-    return {
-      status: 404,
-      body: {
-        success: false,
-        message: 'Pengguna tidak ditemukan',
-      },
-    };
-  }
-
   return {
     status: 200,
     body: {
       success: true,
       data: {
-        user: toPublicUser(user),
+        user: toPublicUser(sessionResult.user),
         appUrl: env.APP_URL,
       },
     },
@@ -290,7 +188,7 @@ export async function getAuthenticatedUser(headers: Record<string, string | unde
 }
 
 export async function logoutUser(headers: Record<string, string | undefined>) {
-  const sessionResult = await resolveAuthorizedSession(headers);
+  const sessionResult = await requireAuth(headers);
 
   if (!sessionResult.ok) {
     return {
@@ -301,7 +199,7 @@ export async function logoutUser(headers: Record<string, string | undefined>) {
 
   await prisma.session.updateMany({
     where: {
-      userId: sessionResult.userId,
+      userId: sessionResult.user.id,
       refreshTokenHash: sessionResult.tokenHash,
       revokedAt: null,
     },
@@ -314,7 +212,7 @@ export async function logoutUser(headers: Record<string, string | undefined>) {
     status: 200,
     body: {
       success: true,
-      message: 'Berhasil logout',
+      message: 'Logged out successfully',
     },
   };
 }
@@ -326,7 +224,7 @@ export async function requestPasswordReset(input: unknown) {
     status: 200,
     body: {
       success: true,
-      message: 'Jika email terdaftar, tautan reset password sudah dikirim',
+      message: 'If that email is registered, a reset link has been sent',
     },
   } as const;
 
@@ -385,7 +283,7 @@ export async function resetPassword(input: unknown) {
       status: 400,
       body: {
         success: false,
-        message: 'Token reset tidak valid atau sudah kedaluwarsa',
+        message: 'Reset token is invalid or expired',
       },
     };
   }
@@ -421,7 +319,7 @@ export async function resetPassword(input: unknown) {
     status: 200,
     body: {
       success: true,
-      message: 'Password berhasil direset',
+      message: 'Password reset successfully',
     },
   };
 }
