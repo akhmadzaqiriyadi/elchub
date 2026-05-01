@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { useManagementEvents } from '../hooks/use-management-events';
 import { CustomDropdown } from './custom-dropdown';
 import { Pagination } from '@/components/ui/pagination';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { useManagementEventCrud } from '../hooks/use-management-event-crud';
 import { WarningModal } from '@/components/ui/warning-modal';
 
@@ -41,6 +42,12 @@ export function ManagementEventsPanel() {
     setModeSlug,
     statusCode,
     setStatusCode,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
+    dateRange,
+    setDateRange,
     page,
     setPage,
     eventsQuery,
@@ -151,6 +158,76 @@ export function ManagementEventsPanel() {
             })),
           ]}
         />
+      </div>
+
+      {/* Sorting and Date Filter */}
+      <div className="mb-4 grid gap-3 md:grid-cols-4">
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-1">
+            Sort By
+          </label>
+          <CustomDropdown
+            value={sortBy}
+            onChange={(nextValue) => {
+              setPage(1);
+              setSortBy(nextValue as 'createdAt' | 'startAt' | 'endAt' | 'title');
+            }}
+            placeholder="Sort By"
+            options={[
+              { value: 'createdAt', label: 'Created Date' },
+              { value: 'startAt', label: 'Start Date' },
+              { value: 'endAt', label: 'End Date' },
+              { value: 'title', label: 'Title' },
+            ]}
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-1">
+            Order
+          </label>
+          <CustomDropdown
+            value={sortOrder}
+            onChange={(nextValue) => {
+              setPage(1);
+              setSortOrder(nextValue as 'asc' | 'desc');
+            }}
+            placeholder="Order"
+            options={[
+              { value: 'desc', label: 'Newest First' },
+              { value: 'asc', label: 'Oldest First' },
+            ]}
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-1">
+            Date Range
+          </label>
+          <DateRangePicker
+            value={dateRange}
+            onChange={(range) => {
+              setPage(1);
+              setDateRange(range);
+            }}
+            placeholder="Select date range"
+            className="w-full"
+          />
+        </div>
+
+        <div className="flex items-end">
+          <button
+            onClick={() => {
+              setPage(1);
+              setSortBy('createdAt');
+              setSortOrder('desc');
+              setDateRange({});
+            }}
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          >
+            Reset Filters
+          </button>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">

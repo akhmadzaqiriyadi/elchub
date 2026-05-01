@@ -14,9 +14,16 @@ export function useManagementEvents() {
   const [modeSlug, setModeSlug] = useState('');
   const [statusCode, setStatusCode] = useState('');
   const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState<'createdAt' | 'startAt' | 'endAt' | 'title'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
 
   const debouncedSearch = useDebouncedValue(searchInput, 350);
   const limit = 10;
+
+  // Convert Date objects to ISO strings for API
+  const startDateISO = dateRange.from ? dateRange.from.toISOString() : undefined;
+  const endDateISO = dateRange.to ? dateRange.to.toISOString() : undefined;
 
   const queryParams = useMemo(
     () => ({
@@ -24,11 +31,15 @@ export function useManagementEvents() {
       typeSlug: typeSlug || undefined,
       modeSlug: modeSlug || undefined,
       statusCode: statusCode || undefined,
+      sortBy,
+      sortOrder,
+      startDate: startDateISO,
+      endDate: endDateISO,
       page,
       limit,
       token,
     }),
-    [debouncedSearch, typeSlug, modeSlug, statusCode, page, token],
+    [debouncedSearch, typeSlug, modeSlug, statusCode, sortBy, sortOrder, startDateISO, endDateISO, page, token],
   );
 
   const eventsQuery = useQuery({
@@ -53,6 +64,12 @@ export function useManagementEvents() {
     setModeSlug,
     statusCode,
     setStatusCode,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
+    dateRange,
+    setDateRange,
     page,
     setPage,
     eventsQuery,

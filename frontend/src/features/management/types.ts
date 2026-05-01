@@ -79,6 +79,10 @@ export type EventListParams = {
   statusCode?: string;
   page?: number;
   limit?: number;
+  sortBy?: 'createdAt' | 'startAt' | 'endAt' | 'title';
+  sortOrder?: 'asc' | 'desc';
+  startDate?: string;
+  endDate?: string;
 };
 
 export type ManagementEventMutationInput = {

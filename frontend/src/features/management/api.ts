@@ -29,6 +29,10 @@ function toQueryString(params: EventListParams) {
   if (params.statusCode) searchParams.set('statusCode', params.statusCode);
   if (params.page) searchParams.set('page', String(params.page));
   if (params.limit) searchParams.set('limit', String(params.limit));
+  if (params.sortBy) searchParams.set('sortBy', params.sortBy);
+  if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+  if (params.startDate) searchParams.set('startDate', params.startDate);
+  if (params.endDate) searchParams.set('endDate', params.endDate);
 
   const built = searchParams.toString();
   return built ? `?${built}` : '';
