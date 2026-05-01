@@ -914,3 +914,89 @@ export async function deleteManagementMasterData(kind: MasterDataKind, id: strin
 
   await prisma.eventStatus.delete({ where: { id } });
 }
+
+export type RegisterEventPayload = {
+  customAnswers?: any | null;
+  paymentProofUrl?: string | null;
+};
+
+export async function registerForEvent(actor: AuthActor, eventId: string, payload: RegisterEventPayload) {
+  const event = await prisma.event.findFirst({
+    where: { id: eventId },
+    include: {
+      status: true,
+      _count: {
+        select: { registrations: { where: { status: { code: 'REGISTERED' } } } }
+      }
+    }
+  });
+
+  if (!event) {
+    throw new Error('Event not found');
+  }
+
+  if (event.status.code !== 'PUBLISHED') {
+    throw new Error('Event is not open for registration');
+  }
+
+  const now = new Date();
+  if (event.registrationOpenAt && event.registrationOpenAt > now) {
+    throw new Error('Registration is not open yet');
+  }
+
+  if (event.registrationCloseAt && event.registrationCloseAt < now) {
+    throw new Error('Registration is closed');
+  }
+
+  if (event.capacity && event._count.registrations >= event.capacity) {
+    throw new Error('Event capacity is full');
+  }
+
+  if (!event.isFree) {
+    if (!payload.paymentProofUrl) {
+      throw new Error('Payment proof is required for paid events');
+    }
+  }
+
+  const registeredStatus = await prisma.registrationStatus.findFirst({
+    where: { code: 'REGISTERED' }
+  });
+
+  if (!registeredStatus) {
+    throw new Error('Registration status REGISTERED not found');
+  }
+
+  const existingRegistration = await prisma.eventRegistration.findUnique({
+    where: {
+      eventId_userId: {
+        eventId,
+        userId: actor.userId,
+      }
+    }
+  });
+
+  if (existingRegistration) {
+    throw new Error('You have already registered for this event');
+  }
+
+  const registration = await prisma.eventRegistration.create({
+    data: {
+      eventId,
+      userId: actor.userId,
+      statusId: registeredStatus.id,
+      customAnswers: payload.customAnswers ? (payload.customAnswers as any) : undefined,
+      paymentProofUrl: payload.paymentProofUrl ?? null,
+      paymentStatus: event.isFree ? 'FREE' : 'WAITING_VERIFICATION',
+    }
+  });
+
+  return {
+    id: registration.id,
+    eventId: registration.eventId,
+    userId: registration.userId,
+    statusId: registration.statusId,
+    paymentStatus: registration.paymentStatus,
+    paymentProofUrl: registration.paymentProofUrl,
+    createdAt: registration.createdAt.toISOString(),
+  };
+}

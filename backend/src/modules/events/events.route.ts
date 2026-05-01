@@ -13,6 +13,7 @@ import {
   listManagementMasterData,
   updateManagementEvent,
   updateManagementMasterData,
+  registerForEvent,
 } from './events.service';
 import { uploadEventBanner } from '../../lib/storage';
 
@@ -331,6 +332,25 @@ const eventMasterDataSuccessSchema = t.Object({
   }),
 });
 
+const registerEventBodySchema = t.Object({
+  customAnswers: t.Optional(t.Union([t.Any(), t.Null()])),
+  paymentProofUrl: t.Optional(t.Union([t.String(), t.Null()])),
+});
+
+const registerEventSuccessSchema = t.Object({
+  success: t.Literal(true),
+  message: t.String(),
+  data: t.Object({
+    id: t.String(),
+    eventId: t.String(),
+    userId: t.String(),
+    statusId: t.String(),
+    paymentStatus: t.String(),
+    paymentProofUrl: t.Nullable(t.String()),
+    createdAt: t.String({ format: 'date-time' }),
+  }),
+});
+
 export const eventsRoute = new Elysia({ name: 'events-route' })
   .get(
     '/api/events',
@@ -442,6 +462,59 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
         tags: ['Events'],
         summary: 'Create event',
         description: 'Create event draft. Allowed roles: ORGANIZER, ADMIN.',
+      },
+    },
+  )
+  .post(
+    '/api/events/:id/register',
+    async ({ headers, params, body, set }) => {
+      const authResult = await requireRole(headers, [UserRole.USER, UserRole.ORGANIZER, UserRole.ADMIN, UserRole.MENTOR]);
+
+      if (!authResult.ok) {
+        set.status = authResult.status;
+        return authResult.body;
+      }
+
+      try {
+        const registration = await registerForEvent(
+          {
+            userId: authResult.user.id,
+            role: authResult.user.role,
+          },
+          params.id,
+          {
+            customAnswers: body.customAnswers,
+            paymentProofUrl: body.paymentProofUrl,
+          }
+        );
+
+        return {
+          success: true as const,
+          message: 'Successfully registered for event',
+          data: registration,
+        };
+      } catch (error) {
+        const mappedError = mapMasterDataError(error);
+        set.status = mappedError.status;
+        return {
+          success: false as const,
+          message: mappedError.message,
+        };
+      }
+    },
+    {
+      params: t.Object({ id: t.String() }),
+      body: registerEventBodySchema,
+      response: {
+        200: registerEventSuccessSchema,
+        400: mutationErrorSchema,
+        401: authErrorSchema,
+        404: mutationErrorSchema,
+      },
+      detail: {
+        tags: ['Events'],
+        summary: 'Register for event',
+        description: 'Registers the authenticated user for the specified event.',
       },
     },
   );
