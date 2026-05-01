@@ -140,6 +140,10 @@ const listEventsQuerySchema = t.Object({
   statusCode: t.Optional(t.String()),
   page: t.Optional(t.Numeric()),
   limit: t.Optional(t.Numeric()),
+  sortBy: t.Optional(t.String()),
+  sortOrder: t.Optional(t.Union([t.Literal('asc'), t.Literal('desc')])),
+  startDate: t.Optional(t.String({ format: 'date-time' })),
+  endDate: t.Optional(t.String({ format: 'date-time' })),
 });
 
 const masterDataKindSchema = t.Union([
@@ -329,6 +333,10 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
         statusCode: query.statusCode,
         page: query.page,
         limit: query.limit,
+        sortBy: query.sortBy,
+        sortOrder: query.sortOrder as 'asc' | 'desc' | undefined,
+        startDate: query.startDate,
+        endDate: query.endDate,
       });
 
       return {
@@ -518,6 +526,10 @@ export const eventsManagementRoute = new Elysia({ name: 'events-management-route
           statusCode: query.statusCode,
           page: query.page,
           limit: query.limit,
+          sortBy: query.sortBy,
+          sortOrder: query.sortOrder as 'asc' | 'desc' | undefined,
+          startDate: query.startDate,
+          endDate: query.endDate,
         });
 
         return {

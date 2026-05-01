@@ -9,6 +9,10 @@ export type ListEventsQuery = {
   organizerId?: string;
   page?: number;
   limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  startDate?: string;
+  endDate?: string;
 };
 
 export type ManagementEventPayload = {
@@ -354,6 +358,13 @@ export async function listEvents(input: ListEventsQuery) {
   const search = normalizeSearchTerm(input.q);
   const pagination = normalizePagination({ page: input.page, limit: input.limit });
 
+  const validSortFields = ['createdAt', 'startAt', 'endAt', 'title'];
+  const sortBy = input.sortBy && validSortFields.includes(input.sortBy) ? input.sortBy : 'createdAt';
+  const sortOrder = input.sortOrder === 'asc' ? 'asc' : 'desc';
+
+  const startGte = input.startDate ? parseOptionalDateTime(input.startDate) || undefined : undefined;
+  const startLte = input.endDate ? parseOptionalDateTime(input.endDate) || undefined : undefined;
+
   const where = {
     ...(search
       ? {
@@ -367,13 +378,21 @@ export async function listEvents(input: ListEventsQuery) {
     ...(input.modeSlug ? { mode: { slug: input.modeSlug } } : {}),
     ...(input.statusCode ? { status: { code: input.statusCode } } : {}),
     ...(input.organizerId ? { organizerId: input.organizerId } : {}),
+    ...(startGte || startLte
+      ? {
+          startAt: {
+            ...(startGte ? { gte: startGte } : {}),
+            ...(startLte ? { lte: startLte } : {}),
+          },
+        }
+      : {}),
   };
 
   const [items, total] = await prisma.$transaction([
     prisma.event.findMany({
       where,
       orderBy: {
-        createdAt: 'desc',
+        [sortBy]: sortOrder,
       },
       skip: pagination.skip,
       take: pagination.limit,
