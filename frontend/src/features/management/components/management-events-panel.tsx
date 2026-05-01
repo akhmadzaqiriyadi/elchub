@@ -91,7 +91,7 @@ export function ManagementEventsPanel() {
         </div>
       </div>
 
-      <div className="mb-4 grid gap-3 md:grid-cols-4">
+      <div className="mb-4 grid gap-3 md:grid-cols-4 items-start">
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
           <p className="text-xs uppercase tracking-wide text-slate-500">Total Events</p>
           <p className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">{summary.total}</p>
@@ -110,7 +110,7 @@ export function ManagementEventsPanel() {
         </div>
       </div>
 
-      <div className="mb-4 grid gap-3 md:grid-cols-4">
+      <div className="mb-4 grid gap-3 md:grid-cols-5 md:items-end">
         <CustomDropdown
           value={typeSlug}
           onChange={(nextValue) => {
@@ -200,13 +200,13 @@ export function ManagementEventsPanel() {
           />
         </div>
 
-        <div>
+        <div className="md:col-span-2">
           <label className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-1">
             Date Range
           </label>
           <DateRangePicker
             value={dateRange}
-            onChange={(range) => {
+            onChange={(range: { from?: Date; to?: Date }) => {
               setPage(1);
               setDateRange(range);
             }}
