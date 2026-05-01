@@ -8,12 +8,6 @@ export const NAVBAR_MENU_ITEMS: NavItem[] = [
   {
     label: 'Event',
     href: '/events',
-    children: [
-      { label: 'Webinar', href: '/events/webinar' },
-      { label: 'Workshop', href: '/events/workshop' },
-      { label: 'Seminar', href: '/events/seminar' },
-    ],
-    isDropdown: true,
   },
   {
     label: 'Mentoring Eksklusif',

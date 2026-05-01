@@ -140,6 +140,44 @@ export function MobileMenu({ isOpen, onClose, items }: MobileMenuProps) {
   const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const unreadNotifications = notifications.filter((n) => !n.read).length;
 
+  // Helper function to check if a link is active
+  const isLinkActive = (href: string) => {
+    // Exact match or prefix match
+    if (pathname === href) return true;
+    if (pathname.startsWith(href + '/')) return true;
+    return false;
+  };
+
+  // Find the most specific active item to avoid duplicates
+  const getMostSpecificActiveItem = () => {
+    let mostSpecific: string | null = null;
+    let maxLength = 0;
+
+    items.forEach((item) => {
+      if (item.href && isLinkActive(item.href)) {
+        if (item.href.length > maxLength) {
+          mostSpecific = item.href;
+          maxLength = item.href.length;
+        }
+      }
+      // Check children too
+      if (item.children) {
+        item.children.forEach((child) => {
+          if (child.href && isLinkActive(child.href)) {
+            if (child.href.length > maxLength) {
+              mostSpecific = child.href;
+              maxLength = child.href.length;
+            }
+          }
+        });
+      }
+    });
+
+    return mostSpecific;
+  };
+
+  const mostSpecificActive = getMostSpecificActiveItem();
+
   const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);
   };
@@ -200,9 +238,10 @@ export function MobileMenu({ isOpen, onClose, items }: MobileMenuProps) {
                         href={item.href}
                         data-mobile-item
                         className={cn(
-                          'px-4 py-3 text-sm font-medium rounded-lg transition-colors',
-                          'text-[#2E417B] hover:bg-slate-100',
-                          'dark:text-slate-300 dark:hover:bg-slate-800',
+                          'px-4 py-3 text-sm font-medium rounded-lg transition-colors border-b-2 border-transparent',
+                          mostSpecificActive === item.href
+                            ? 'text-[#2E417B] font-semibold dark:text-white border-[#2E417B] dark:border-white'
+                            : 'text-[#2E417B] hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
                         )}
                         onClick={onClose}
                       >
@@ -234,9 +273,10 @@ export function MobileMenu({ isOpen, onClose, items }: MobileMenuProps) {
                               key={child.label}
                               href={child.href || '#'}
                               className={cn(
-                                'px-4 py-2 text-xs font-medium rounded transition-colors',
-                                'text-slate-700 hover:bg-slate-100',
-                                'dark:text-slate-400 dark:hover:bg-slate-800',
+                                'px-4 py-2 text-xs font-medium rounded transition-colors border-l-2 border-transparent',
+                                child.href && mostSpecificActive === child.href
+                                  ? 'text-[#2E417B] font-semibold dark:text-white border-[#2E417B] dark:border-white'
+                                  : 'text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800',
                               )}
                               onClick={onClose}
                             >

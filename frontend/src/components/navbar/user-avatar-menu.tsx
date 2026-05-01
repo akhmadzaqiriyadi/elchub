@@ -9,7 +9,7 @@ import { useAuth } from '@/features/auth/auth-context';
 import { Button } from '@/components/ui/button';
 import { LogoutConfirmModal } from '@/components/ui/logout-confirm-modal';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 
 type UserAvatarMenuProps = {
@@ -19,9 +19,13 @@ type UserAvatarMenuProps = {
 export function UserAvatarMenu({ className }: UserAvatarMenuProps) {
   const { user, logout, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Check if user is in dashboard
+  const isDashboard = pathname.startsWith('/dashboard');
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -89,6 +93,16 @@ export function UserAvatarMenu({ className }: UserAvatarMenuProps) {
 
           {/* Menu Items */}
           <div className="py-2">
+            {/* Dashboard Link - Show only when not in dashboard */}
+            {!isDashboard && (
+              <Link
+                href="/dashboard"
+                className="block px-4 py-2 text-sm text-primary dark:text-slate-300 hover:bg-primary/5 dark:hover:bg-slate-700 transition-colors font-medium"
+                onClick={() => setIsOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
             <Link
               href="/profile"
               className="block px-4 py-2 text-sm text-primary dark:text-slate-300 hover:bg-primary/5 dark:hover:bg-slate-700 transition-colors"
