@@ -27,16 +27,22 @@ export function Navbar({ className }: NavbarProps) {
   const { user, isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  // Determine if user is in dashboard
+  // Determine current page location
   const isDashboard = pathname.startsWith('/dashboard');
+  const isManagementPath = pathname.startsWith('/management');
   
   const isManagementRole = Boolean(isAuthenticated && user?.role && managementRoles.has(user.role));
 
-  // Choose menu items based on role and location
-  const menuItems = isManagementRole
+  // Choose menu items based on location and role
+  // Management path: always show management menu
+  // Dashboard path: show management menu for admin/organizer, dashboard menu for others
+  // Home page: show navbar menu for all roles
+  const menuItems = isManagementPath
     ? MANAGEMENT_MENU_ITEMS
     : isDashboard
-      ? DASHBOARD_MENU_ITEMS
+      ? isManagementRole
+        ? MANAGEMENT_MENU_ITEMS
+        : DASHBOARD_MENU_ITEMS
       : NAVBAR_MENU_ITEMS;
 
   return (

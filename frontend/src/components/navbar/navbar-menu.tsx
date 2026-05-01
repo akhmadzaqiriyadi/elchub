@@ -6,6 +6,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NavbarLink } from './navbar-link';
@@ -17,8 +18,47 @@ interface NavbarMenuProps {
 }
 
 export function NavbarMenu({ items, className }: NavbarMenuProps) {
+  const pathname = usePathname();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [hoveredDropdown, setHoveredDropdown] = useState<string | null>(null);
+
+  // Helper function to check if a link is active
+  const isLinkActive = (href: string) => {
+    const active = pathname === href || pathname.startsWith(href + '/');
+    return active;
+  };
+
+  // Find the most specific active item to avoid duplicates
+  const getMostSpecificActiveItem = () => {
+    let mostSpecific: string | null = null;
+    let maxLength = 0;
+
+    items.forEach((item) => {
+      if (item.href) {
+        const active = isLinkActive(item.href);
+        if (active && item.href.length > maxLength) {
+          mostSpecific = item.href;
+          maxLength = item.href.length;
+        }
+      }
+      // Check children too
+      if (item.children) {
+        item.children.forEach((child) => {
+          if (child.href) {
+            const active = isLinkActive(child.href);
+            if (active && child.href.length > maxLength) {
+              mostSpecific = child.href;
+              maxLength = child.href.length;
+            }
+          }
+        });
+      }
+    });
+
+    return mostSpecific;
+  };
+
+  const mostSpecificActive = getMostSpecificActiveItem();
 
   return (
     <nav className={cn('flex items-center gap-6', className)}>
@@ -30,6 +70,7 @@ export function NavbarMenu({ items, className }: NavbarMenuProps) {
               key={item.label}
               href={item.href}
               label={item.label}
+              isActive={mostSpecificActive === item.href}
               className="px-2 py-1"
             />
           );
@@ -84,6 +125,7 @@ export function NavbarMenu({ items, className }: NavbarMenuProps) {
                     key={child.label}
                     href={child.href || '#'}
                     label={child.label}
+                    isActive={child.href ? mostSpecificActive === child.href : false}
                     className={cn(
                       'block px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 w-full text-left transition-colors',
                       index > 0 && 'border-t border-slate-100 dark:border-slate-800'
