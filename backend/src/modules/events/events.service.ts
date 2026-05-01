@@ -30,6 +30,9 @@ export type ManagementEventPayload = {
   registrationCloseAt?: string | null;
   timezone?: string;
   capacity?: number | null;
+  isFree?: boolean;
+  price?: number | null;
+  formSchema?: any | null;
 };
 
 export type AuthActor = {
@@ -185,6 +188,16 @@ async function validateAndNormalizeEventPayload(input: ManagementEventPayload) {
     throw new Error('Registration close time cannot be after event start time');
   }
 
+  const isFree = input.isFree ?? true;
+  let price = input.price;
+  if (!isFree) {
+    if (typeof price !== 'number' || price < 0) {
+      throw new Error('Price must be a valid positive number for paid events');
+    }
+  } else {
+    price = null;
+  }
+
   return {
     title,
     description: input.description?.trim() || null,
@@ -200,6 +213,9 @@ async function validateAndNormalizeEventPayload(input: ManagementEventPayload) {
     registrationCloseAt,
     timezone: input.timezone?.trim() || 'Asia/Jakarta',
     capacity,
+    isFree,
+    price,
+    formSchema: input.formSchema ?? null,
   };
 }
 
@@ -311,6 +327,9 @@ function mapEventItem(item: {
   registrationCloseAt: Date | null;
   timezone: string | null;
   capacity: number | null;
+  isFree: boolean;
+  price: number | null;
+  formSchema: any | null;
   type: { name: string; slug: string };
   mode: { name: string; slug: string };
   status: { code: string; name: string };
@@ -330,6 +349,9 @@ function mapEventItem(item: {
     registrationCloseAt: item.registrationCloseAt?.toISOString() ?? null,
     timezone: item.timezone,
     capacity: item.capacity,
+    isFree: item.isFree,
+    price: item.price,
+    formSchema: item.formSchema,
     type: item.type,
     mode: item.mode,
     level: item.level,
@@ -464,6 +486,9 @@ export async function createManagementEvent(actor: AuthActor, input: ManagementE
       registrationCloseAt: validated.registrationCloseAt,
       timezone: validated.timezone,
       capacity: validated.capacity,
+      isFree: validated.isFree,
+      price: validated.price,
+      formSchema: validated.formSchema ? (validated.formSchema as any) : null,
     },
     include: {
       type: { select: { name: true, slug: true } },
@@ -515,6 +540,9 @@ export async function updateManagementEvent(actor: AuthActor, eventId: string, i
       registrationCloseAt: validated.registrationCloseAt,
       timezone: validated.timezone,
       capacity: validated.capacity,
+      isFree: validated.isFree,
+      price: validated.price,
+      formSchema: validated.formSchema !== undefined ? (validated.formSchema ? (validated.formSchema as any) : null) : undefined,
     },
     include: {
       type: { select: { name: true, slug: true } },

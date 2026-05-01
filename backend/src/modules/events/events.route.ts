@@ -96,6 +96,9 @@ const listEventsSuccessSchema = t.Object({
         registrationCloseAt: t.Nullable(t.String({ format: 'date-time' })),
         timezone: t.Nullable(t.String()),
         capacity: t.Nullable(t.Number()),
+        isFree: t.Boolean(),
+        price: t.Nullable(t.Number()),
+        formSchema: t.Nullable(t.Any()),
         type: t.Object({
           name: t.String(),
           slug: t.String(),
@@ -221,6 +224,9 @@ const managementEventBodySchema = t.Object({
   registrationCloseAt: t.Optional(t.Union([t.String({ format: 'date-time' }), t.Null()])),
   timezone: t.Optional(t.String()),
   capacity: t.Optional(t.Union([t.Numeric(), t.Null()])),
+  isFree: t.Optional(t.Boolean()),
+  price: t.Optional(t.Union([t.Numeric(), t.Null()])),
+  formSchema: t.Optional(t.Union([t.Any(), t.Null()])),
 });
 
 const createEventSuccessSchema = t.Object({
@@ -260,6 +266,9 @@ const managementEventSuccessSchema = t.Object({
     registrationCloseAt: t.Nullable(t.String({ format: 'date-time' })),
     timezone: t.Nullable(t.String()),
     capacity: t.Nullable(t.Number()),
+    isFree: t.Boolean(),
+    price: t.Nullable(t.Number()),
+    formSchema: t.Nullable(t.Any()),
     type: t.Object({ name: t.String(), slug: t.String() }),
     mode: t.Object({ name: t.String(), slug: t.String() }),
     level: t.Nullable(t.Object({ id: t.String(), name: t.String(), slug: t.String() })),

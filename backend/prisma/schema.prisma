@@ -25,10 +25,10 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  sessions        Session[]
+  sessions            Session[]
   passwordResetTokens PasswordResetToken[]
-  organizedEvents Event[]   @relation("EventOrganizer")
-  registrations   EventRegistration[]
+  organizedEvents     Event[]              @relation("EventOrganizer")
+  registrations       EventRegistration[]
 
   @@map("users")
 }
@@ -42,7 +42,7 @@ model EventType {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  events    Event[]
+  events Event[]
 
   @@index([isActive, sortOrder])
   @@map("event_types")
@@ -72,7 +72,7 @@ model EventMode {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  events    Event[]
+  events Event[]
 
   @@index([isActive, sortOrder])
   @@map("event_modes")
@@ -87,7 +87,7 @@ model EventLevel {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  events    Event[]
+  events Event[]
 
   @@index([isActive, sortOrder])
   @@map("event_levels")
@@ -102,7 +102,7 @@ model EventStatus {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  events    Event[]
+  events Event[]
 
   @@index([isActive, sortOrder])
   @@map("event_statuses")
@@ -124,15 +124,15 @@ model RegistrationStatus {
 }
 
 model Event {
-  id                  String   @id @default(cuid())
+  id                  String    @id @default(cuid())
   title               String
-  slug                String   @unique
+  slug                String    @unique
   description         String?
   imageUrl            String?
   meetLink            String?
   startAt             DateTime?
   endAt               DateTime?
-  timezone            String?  @default("Asia/Jakarta")
+  timezone            String?   @default("Asia/Jakarta")
   capacity            Int?
   registrationOpenAt  DateTime?
   registrationCloseAt DateTime?
@@ -141,14 +141,17 @@ model Event {
   modeId              String
   levelId             String?
   statusId            String
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  isFree              Boolean   @default(true)
+  price               Int?
+  formSchema          Json?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
-  organizer     User        @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Restrict)
-  type          EventType   @relation(fields: [typeId], references: [id], onDelete: Restrict)
-  mode          EventMode   @relation(fields: [modeId], references: [id], onDelete: Restrict)
-  level         EventLevel? @relation(fields: [levelId], references: [id], onDelete: SetNull)
-  status        EventStatus @relation(fields: [statusId], references: [id], onDelete: Restrict)
+  organizer     User                @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Restrict)
+  type          EventType           @relation(fields: [typeId], references: [id], onDelete: Restrict)
+  mode          EventMode           @relation(fields: [modeId], references: [id], onDelete: Restrict)
+  level         EventLevel?         @relation(fields: [levelId], references: [id], onDelete: SetNull)
+  status        EventStatus         @relation(fields: [statusId], references: [id], onDelete: Restrict)
   topics        EventTopicMap[]
   registrations EventRegistration[]
 
@@ -162,11 +165,11 @@ model Event {
 }
 
 model EventTopicMap {
-  eventId    String
-  topicId    String
-  createdAt  DateTime @default(now())
+  eventId   String
+  topicId   String
+  createdAt DateTime @default(now())
 
-  event Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
   topic EventTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
 
   @@id([eventId, topicId])
@@ -175,16 +178,19 @@ model EventTopicMap {
 }
 
 model EventRegistration {
-  id          String   @id @default(cuid())
-  eventId     String
-  userId      String
-  statusId    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  eventId         String
+  userId          String
+  statusId        String
+  customAnswers   Json?
+  paymentProofUrl String?
+  paymentStatus   String   @default("FREE")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  event   Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status  RegistrationStatus @relation(fields: [statusId], references: [id], onDelete: Restrict)
+  event  Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status RegistrationStatus @relation(fields: [statusId], references: [id], onDelete: Restrict)
 
   @@unique([eventId, userId])
   @@index([userId])
@@ -193,30 +199,30 @@ model EventRegistration {
 }
 
 model PasswordResetToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  tokenHash String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("password_reset_tokens")
 }
 
 model Session {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   userId           String
   refreshTokenHash String?
   expiresAt        DateTime
   revokedAt        DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("sessions")
