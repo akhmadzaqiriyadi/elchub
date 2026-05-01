@@ -5,6 +5,7 @@ import type { ManagementEventMutationInput } from '../types';
 export type EventFormState = {
   title: string;
   description: string;
+  imageUrl: string;
   meetLink: string;
   typeId: string;
   modeId: string;
@@ -23,6 +24,7 @@ export type EventFormErrors = Partial<Record<keyof EventFormState, string>>;
 export const initialEventFormState: EventFormState = {
   title: '',
   description: '',
+  imageUrl: '',
   meetLink: '',
   typeId: '',
   modeId: '',
@@ -191,6 +193,7 @@ export function buildManagementEventPayload(formState: EventFormState): Manageme
   return {
     title: formState.title.trim(),
     description: formState.description.trim() || undefined,
+    imageUrl: (formState.imageUrl || '').trim() || null,
     meetLink: formState.meetLink.trim() || undefined,
     typeId: formState.typeId,
     modeId: formState.modeId,

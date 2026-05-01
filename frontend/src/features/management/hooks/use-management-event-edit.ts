@@ -29,6 +29,7 @@ function mapEventToForm(event: EventListItem): EventFormState {
   return {
     title: event.title,
     description: event.description ?? '',
+    imageUrl: event.image ?? '',
     meetLink: event.meetLink ?? '',
     typeId: '',
     modeId: '',
@@ -170,6 +171,7 @@ export function useManagementEventEdit(eventId: string) {
       toast.success('Event updated');
       localStorage.removeItem(`draft_event_edit_${eventId}`);
       queryClient.invalidateQueries({ queryKey: ['management', 'events'] });
+      queryClient.invalidateQueries({ queryKey: ['landing', 'event-highlights'] });
       queryClient.invalidateQueries({ queryKey: ['management', 'events', 'detail', eventId] });
       router.push('/management/events');
     },

@@ -1,13 +1,16 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { Plus } from 'lucide-react';
 
 import { useManagementUsers } from '../hooks/use-management-users';
 import { useManagementUserCrud } from '../hooks/use-management-user-crud';
 import { UserTableRow } from './user-table-row';
 import { UserFormModal } from './user-form-modal';
-import { UserDeleteConfirmModal } from './user-delete-confirm-modal';
+import { UserDetailModal } from './user-detail-modal';
 import { UserFilters } from './user-filters';
+import { CustomDropdown } from './custom-dropdown';
+import { WarningModal } from '@/components/ui/warning-modal';
 import { Pagination } from '@/components/ui/pagination';
 import type { UserListItem, UserRole } from '../types';
 import type { CreateUserInput, UpdateUserInput } from '../types';
@@ -34,9 +37,10 @@ export function ManagementUsersPanel() {
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserListItem | null>(null);
+  const [viewingUser, setViewingUser] = useState<UserListItem | null>(null);
   const [userToDelete, setUserToDelete] = useState<UserListItem | null>(null);
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const items = usersQuery.data?.data.items ?? [];
   const pagination = usersQuery.data?.data.pagination;
@@ -68,6 +72,11 @@ export function ManagementUsersPanel() {
     setIsEditModalOpen(true);
   };
 
+  const handleViewUser = (user: UserListItem) => {
+    setViewingUser(user);
+    setIsDetailModalOpen(true);
+  };
+
   // Handle update user
   const handleUpdateUser = (data: UserFormInput | UserUpdateFormInput) => {
     if (!editingUser) return;
@@ -92,13 +101,11 @@ export function ManagementUsersPanel() {
   // Handle delete user
   const handleDeleteClick = (user: UserListItem) => {
     setUserToDelete(user);
-    setIsDeleteConfirmOpen(true);
   };
 
   const handleConfirmDelete = () => {
     if (!userToDelete) return;
     deleteMutation.mutate(userToDelete.id);
-    setIsDeleteConfirmOpen(false);
     setUserToDelete(null);
   };
 
@@ -107,7 +114,7 @@ export function ManagementUsersPanel() {
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-      {/* Header */}
+      {/* Header with Title and Create Button */}
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
           User Management
@@ -117,16 +124,19 @@ export function ManagementUsersPanel() {
             setEditingUser(null);
             setIsCreateModalOpen(true);
           }}
-          className="rounded-lg bg-[#2E417B] px-4 py-2 text-sm font-semibold text-white"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#2E417B] px-4 py-2 text-sm font-semibold text-white hover:bg-[#23306a] dark:bg-[#3a5394] dark:hover:bg-[#2e4280]"
         >
-          + Create User
+          <Plus className="h-4 w-4" />
+          Create User
         </button>
       </div>
 
       {/* Summary Cards */}
-      <div className="mb-4 grid gap-3 md:grid-cols-4">
+      <div className="mb-5 grid gap-3 md:grid-cols-4">
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Total Users</p>
+          <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Total Users
+          </p>
           <p className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">
             {summary.total}
           </p>
@@ -178,69 +188,86 @@ export function ManagementUsersPanel() {
       />
 
       {/* Table */}
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+      <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
+        <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+          <thead className="bg-slate-50 dark:bg-slate-800/60">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Name
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Email
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Role
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Status
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Created
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody>
-            {isLoading ? (
+          <tbody className="divide-y divide-slate-200 bg-white dark:divide-slate-700 dark:bg-slate-900">
+            {isLoading && (
               <tr>
-                <td colSpan={6} className="py-8 text-center">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Loading users...
-                  </p>
+                <td colSpan={6} className="px-4 py-5 text-center text-sm text-slate-500 dark:text-slate-400">
+                  Loading users...
                 </td>
               </tr>
-            ) : items.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="py-8 text-center">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    No users found
-                  </p>
-                </td>
-              </tr>
-            ) : (
-              items.map((user) => (
-                <UserTableRow
-                  key={user.id}
-                  user={user}
-                  onEdit={handleEditUser}
-                  onDelete={handleDeleteClick}
-                />
-              ))
             )}
+            {!isLoading && items.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-4 py-5 text-center text-sm text-slate-500 dark:text-slate-400">
+                  No users found
+                </td>
+              </tr>
+            )}
+            {items.map((user) => (
+              <UserTableRow
+                key={user.id}
+                user={user}
+                onView={handleViewUser}
+                onEdit={handleEditUser}
+                onDelete={handleDeleteClick}
+              />
+            ))}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
-        <div className="mt-4">
+      {/* Pagination Section */}
+      {pagination && (
+        <div className="mt-4 flex flex-col gap-3">
+          <div className="flex items-center justify-end gap-2">
+            <span className="text-sm text-slate-600 dark:text-slate-300">Page size</span>
+            <div className="w-24">
+              <CustomDropdown
+                value={String(limit)}
+                onChange={(nextValue) => {
+                  setPage(1);
+                  setLimit(Number(nextValue));
+                }}
+                placeholder="Items per page"
+                options={[
+                  { value: '10', label: '10' },
+                  { value: '20', label: '20' },
+                  { value: '50', label: '50' },
+                ]}
+              />
+            </div>
+          </div>
+
           <Pagination
-            page={page}
-            limit={limit}
+            page={pagination.page}
+            limit={pagination.limit}
             total={pagination.total}
             totalPages={pagination.totalPages}
+            isLoading={usersQuery.isFetching}
             onPageChange={setPage}
           />
         </div>
@@ -267,14 +294,24 @@ export function ManagementUsersPanel() {
         mode="edit"
       />
 
-      <UserDeleteConfirmModal
-        isOpen={isDeleteConfirmOpen}
-        user={userToDelete}
-        onConfirm={handleConfirmDelete}
-        onCancel={() => {
-          setIsDeleteConfirmOpen(false);
-          setUserToDelete(null);
+      <UserDetailModal
+        isOpen={isDetailModalOpen}
+        userId={viewingUser?.id ?? null}
+        onClose={() => {
+          setIsDetailModalOpen(false);
+          setViewingUser(null);
         }}
+      />
+
+      <WarningModal
+        isOpen={Boolean(userToDelete)}
+        onClose={() => setUserToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete User"
+        description="This action cannot be undone"
+        message={`Are you sure you want to delete ${userToDelete?.name || userToDelete?.email || 'this user'}?`}
+        confirmText={deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+        cancelText="Cancel"
         isLoading={deleteMutation.isPending}
       />
     </section>

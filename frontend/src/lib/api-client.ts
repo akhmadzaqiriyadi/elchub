@@ -18,22 +18,26 @@ type RequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   token?: string;
+  headers?: Record<string, string>;
 };
 
 const api = axios.create({
   baseURL: frontendEnv.apiBaseUrl,
-  headers: {
-    'content-type': 'application/json',
-  },
 });
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}) {
   try {
+    const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
+
     const response = await api.request<T>({
       url: path,
       method: options.method ?? 'GET',
       data: options.body,
-      headers: options.token ? { authorization: `Bearer ${options.token}` } : undefined,
+      headers: {
+        ...(isFormData ? {} : { 'content-type': 'application/json' }),
+        ...(options.token ? { authorization: `Bearer ${options.token}` } : {}),
+        ...(options.headers ?? {}),
+      },
     });
 
     return response.data;

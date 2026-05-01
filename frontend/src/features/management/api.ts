@@ -63,6 +63,24 @@ export function createManagementEvent(input: ManagementEventMutationInput, token
   });
 }
 
+type EventBannerUploadPayload = {
+  success: true;
+  data: {
+    imageUrl: string;
+  };
+};
+
+export function uploadManagementEventBanner(file: File, token: string) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return apiRequest<EventBannerUploadPayload>('/management/uploads/event-banner', {
+    method: 'POST',
+    body: formData,
+    token,
+  });
+}
+
 export function updateManagementEvent(eventId: string, input: ManagementEventMutationInput, token: string) {
   return apiRequest<ManagementEventDetailPayload>(`/management/events/${eventId}`, {
     method: 'PATCH',

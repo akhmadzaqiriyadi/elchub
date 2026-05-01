@@ -50,6 +50,12 @@ export function ManagementEventViewPage({ eventId }: { eventId: string }) {
 
       {event && (
         <div className="grid gap-4 md:grid-cols-2">
+          {event.image && (
+            <div className="md:col-span-2 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+              <img src={event.image} alt={event.title} className="h-72 w-full object-cover sm:h-96" />
+            </div>
+          )}
+
           <div className="md:col-span-2">
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Title</label>
             <Input readOnly value={event.title} className="h-auto rounded-lg border-slate-300 bg-slate-50 py-2 dark:border-slate-600 dark:bg-slate-800" />

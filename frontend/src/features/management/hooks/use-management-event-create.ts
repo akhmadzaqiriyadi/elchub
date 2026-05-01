@@ -98,6 +98,7 @@ export function useManagementEventCreate() {
       toast.success('Event created');
       localStorage.removeItem('draft_event_create');
       queryClient.invalidateQueries({ queryKey: ['management', 'events'] });
+      queryClient.invalidateQueries({ queryKey: ['landing', 'event-highlights'] });
       router.push('/management/events');
     },
     onError: (error) => {

@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { WarningModal } from '@/components/ui/warning-modal';
+import { EventBannerField } from './event-banner-field';
 import { CustomDropdown } from './custom-dropdown';
 import { ManagementEventDatetimeInput } from './management-event-datetime-input';
 import { useManagementEventEdit } from '../hooks/use-management-event-edit';
@@ -63,6 +64,10 @@ export function ManagementEventEditPage({ eventId }: { eventId: string }) {
           )}
 
           <div className="grid gap-4 md:grid-cols-2">
+            <div className="md:col-span-2">
+              <EventBannerField title={formState.title} value={formState.imageUrl} onChange={(nextValue) => setField('imageUrl', nextValue)} />
+            </div>
+
             <div className="md:col-span-2">
               <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Title <span className="text-rose-500">*</span>

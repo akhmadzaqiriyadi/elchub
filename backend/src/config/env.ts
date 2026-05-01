@@ -22,6 +22,13 @@ const envSchema = z.object({
   SMTP_USER: z.string().default(''),
   SMTP_PASSWORD: z.string().default(''),
   SMTP_FROM: z.string().default('Elchub <noreply@elchub.local>'),
+  MINIO_ENDPOINT: z.string().default(''),
+  MINIO_REGION: z.string().default('us-east-1'),
+  MINIO_ACCESS_KEY: z.string().default(''),
+  MINIO_SECRET_KEY: z.string().default(''),
+  MINIO_BUCKET: z.string().default(''),
+  MINIO_PUBLIC_URL: z.string().default(''),
+  MINIO_SSL_VERIFY: z.coerce.boolean().default(false),
 });
 
 export const env = envSchema.parse(Bun.env);

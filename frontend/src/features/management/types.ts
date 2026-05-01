@@ -3,6 +3,7 @@ export type EventListItem = {
   title: string;
   slug: string;
   description: string | null;
+  image: string | null;
   meetLink: string | null;
   startAt: string | null;
   endAt: string | null;
@@ -83,6 +84,7 @@ export type EventListParams = {
 export type ManagementEventMutationInput = {
   title: string;
   description?: string;
+  imageUrl?: string | null;
   meetLink?: string;
   typeId: string;
   modeId: string;

@@ -29,11 +29,13 @@ export function ManagementAccessGuard({ children }: ManagementAccessGuardProps) 
 
   if (!hasAccess) {
     return (
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-900/60 dark:bg-amber-950/30">
-        <h2 className="text-lg font-semibold text-amber-800 dark:text-amber-300">Access Restricted</h2>
-        <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">
-          Halaman management hanya untuk role ADMIN atau ORGANIZER.
-        </p>
+      <div className="flex min-h-[calc(100vh-160px)] items-center justify-center px-4 py-8">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-900/60 dark:bg-amber-950/30">
+          <h2 className="text-lg font-semibold text-amber-800 dark:text-amber-300">Access Restricted</h2>
+          <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">
+            Halaman management hanya untuk role ADMIN atau ORGANIZER.
+          </p>
+        </div>
       </div>
     );
   }

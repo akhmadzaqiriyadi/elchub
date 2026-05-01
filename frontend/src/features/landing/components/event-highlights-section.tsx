@@ -1,56 +1,27 @@
-import Image from 'next/image';
+'use client';
+
+import { useQuery } from '@tanstack/react-query';
 import type { Event } from '../types/event';
 import { EventCard } from './event-card';
 import { SectionContainer, SectionHeader } from './ui/section-container';
 import { useScrollAnimationStagger } from '../hooks/use-scroll-animation';
+import { getLandingEventHighlights } from '../api';
 
 interface EventHighlightsSectionProps {
-  events?: Event[];
   onEventAction?: (eventId: string) => void;
 }
 
-// Mock events untuk demo
-const MOCK_EVENTS: Event[] = [
-  {
-    id: '1',
-    title: 'Memulai Karir di Tech',
-    description: 'Panduan lengkap untuk pemula yang ingin memasuki industri teknologi',
-    type: 'webinar',
-    status: 'live',
-    isFree: true,
-    isExclusive: false,
-    date: 'Hari ini, 18:00 WIB',
-    instructor: 'Ahmad Riyaldi',
-  },
-  {
-    id: '2',
-    title: 'Advanced React Patterns Workshop',
-    description: 'Pelajari pattern-pattern advanced dalam React untuk project production-ready',
-    type: 'workshop',
-    status: 'upcoming',
-    isFree: false,
-    isExclusive: true,
-    date: '22 April 2026',
-    instructor: 'Sarah Chen',
-  },
-  {
-    id: '3',
-    title: 'Personal Mentoring - Web Development',
-    description: 'Sesi one-on-one mentoring dengan mentor berpengalaman di industri',
-    type: 'mentoring',
-    status: 'upcoming',
-    isFree: false,
-    isExclusive: true,
-    date: '25 April 2026',
-    instructor: 'Budi Santoso',
-  },
-];
-
 export function EventHighlightsSection({
-  events = MOCK_EVENTS,
   onEventAction,
 }: EventHighlightsSectionProps) {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['landing', 'event-highlights'],
+    queryFn: getLandingEventHighlights,
+    staleTime: 1000 * 60 * 5,
+  });
+
   const containerRef = useScrollAnimationStagger({ delay: 0.1, stagger: 0.15 });
+  const events = data ?? [];
 
   return (
     <SectionContainer
@@ -63,29 +34,47 @@ export function EventHighlightsSection({
           subtitle="Berbagai event menarik menunggu Anda. Pilih yang paling sesuai dengan tujuan pembelajaran Anda."
         />
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
-            <div 
-              key={event.id} 
-              data-animate 
-              className="flex flex-col overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 transition-all hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-900/50"
-            >
-              {/* Banner Image */}
-              <div className="h-40 flex-shrink-0 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 overflow-hidden">
-                <Image
-                  src="/images/landing/event.webp"
-                  alt="Event Banner"
-                  width={400}
-                  height={200}
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                />
+        {isLoading && (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-[420px] animate-pulse rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900/50"
+              >
+                <div className="h-48 rounded-t-lg bg-slate-200 dark:bg-slate-700" />
+                <div className="space-y-3 p-6">
+                  <div className="h-4 w-20 rounded-full bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-6 w-4/5 rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-4 w-full rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-4 w-2/3 rounded bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-10 w-full rounded-lg bg-slate-200 dark:bg-slate-700" />
+                </div>
               </div>
-              
-              {/* Event Card Content */}
-              <EventCard event={event} onAction={onEventAction} className="border-0 rounded-none shadow-none hover:shadow-none" />
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
+
+        {!isLoading && isError && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200">
+            Gagal memuat event highlights.
+          </div>
+        )}
+
+        {!isLoading && !isError && events.length === 0 && (
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">
+            Belum ada event publik yang bisa ditampilkan.
+          </div>
+        )}
+
+        {!isLoading && !isError && events.length > 0 && (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {events.map((event) => (
+              <div key={event.id} data-animate>
+                <EventCard event={event} onAction={onEventAction} className="h-full" />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </SectionContainer>
   );

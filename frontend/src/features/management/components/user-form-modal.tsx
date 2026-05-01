@@ -3,8 +3,10 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { X } from 'lucide-react';
 
 import { userFormSchema, userUpdateFormSchema } from '../validation/user-form';
+import { CustomDropdown } from './custom-dropdown';
 import type { UserListItem, UserRole } from '../types';
 import type { UserFormInput, UserUpdateFormInput } from '../validation/user-form';
 
@@ -39,6 +41,7 @@ export function UserFormModal({
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
     watch,
   } = useForm<UserFormInput | UserUpdateFormInput>({
     resolver: zodResolver(schema as any),
@@ -73,26 +76,39 @@ export function UserFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900">
-        <h3 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
-          {mode === 'create' ? 'Create New User' : 'Edit User'}
-        </h3>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50">
+      <div className="flex min-h-full items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-xl dark:bg-slate-900">
+          {/* Modal Header */}
+          <div className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 dark:border-slate-700 dark:bg-slate-900">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              {mode === 'create' ? 'Create New User' : 'Edit User'}
+            </h3>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg p-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <X className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+            </button>
+          </div>
 
-        <form onSubmit={handleSubmit((data: UserFormInput | UserUpdateFormInput) => onSubmit(data))} className="space-y-4">
+          {/* Modal Body - Scrollable */}
+          <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+            <form onSubmit={handleSubmit((data: UserFormInput | UserUpdateFormInput) => onSubmit(data))} className="space-y-4 p-6">
           {/* Name Field */}
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Name (Optional)
+              Name
             </label>
             <input
               {...register('name')}
               type="text"
               placeholder="John Doe"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
             />
             {errors.name && (
-              <p className="mt-1 text-xs text-red-500">{String(errors.name?.message)}</p>
+              <p className="mt-1 text-xs text-red-600">{String(errors.name?.message)}</p>
             )}
           </div>
 
@@ -105,10 +121,10 @@ export function UserFormModal({
               {...register('email')}
               type="email"
               placeholder="user@example.com"
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
             />
             {errors.email && (
-              <p className="mt-1 text-xs text-red-500">{String(errors.email?.message)}</p>
+              <p className="mt-1 text-xs text-red-600">{String(errors.email?.message)}</p>
             )}
           </div>
 
@@ -123,10 +139,10 @@ export function UserFormModal({
                   {...register('password')}
                   type="password"
                   placeholder="••••••••"
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                  className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
                 />
                 {errors.password && (
-                  <p className="mt-1 text-xs text-red-500">{String(errors.password?.message)}</p>
+                  <p className="mt-1 text-xs text-red-600">{String(errors.password?.message)}</p>
                 )}
               </div>
 
@@ -138,10 +154,10 @@ export function UserFormModal({
                   {...register('confirmPassword')}
                   type="password"
                   placeholder="••••••••"
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                  className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
                 />
                 {errors.confirmPassword && (
-                  <p className="mt-1 text-xs text-red-500">{String(errors.confirmPassword?.message)}</p>
+                  <p className="mt-1 text-xs text-red-600">{String(errors.confirmPassword?.message)}</p>
                 )}
               </div>
             </>
@@ -158,10 +174,10 @@ export function UserFormModal({
                   {...register('password')}
                   type="password"
                   placeholder="••••••••"
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                  className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
                 />
                 {errors.password && (
-                  <p className="mt-1 text-xs text-red-500">{String(errors.password?.message)}</p>
+                  <p className="mt-1 text-xs text-red-600">{String(errors.password?.message)}</p>
                 )}
               </div>
 
@@ -173,10 +189,10 @@ export function UserFormModal({
                   {...register('confirmPassword')}
                   type="password"
                   placeholder="••••••••"
-                  className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                  className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
                 />
                 {errors.confirmPassword && (
-                  <p className="mt-1 text-xs text-red-500">{String(errors.confirmPassword?.message)}</p>
+                  <p className="mt-1 text-xs text-red-600">{String(errors.confirmPassword?.message)}</p>
                 )}
               </div>
             </>
@@ -187,37 +203,42 @@ export function UserFormModal({
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
               Role
             </label>
-            <select
-              {...register('role')}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-            >
-              {ROLE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div className="mt-2">
+              <CustomDropdown
+                value={watch('role') || 'USER'}
+                onChange={(value) => {
+                  setValue('role', value as UserRole, { shouldValidate: true });
+                }}
+                placeholder="Select role"
+                options={ROLE_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))}
+              />
+            </div>
             {errors.role && (
-              <p className="mt-1 text-xs text-red-500">{String(errors.role?.message)}</p>
+              <p className="mt-1 text-xs text-red-600">{String(errors.role?.message)}</p>
             )}
+            <input
+              {...register('role')}
+              type="hidden"
+              className="hidden"
+            />
           </div>
 
-          {/* Status Field */}
-          <div>
-            <label className="flex items-center gap-2">
+          {/* Active Status - Checkbox */}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
+            <label className="flex items-center gap-3 cursor-pointer">
               <input
                 {...register('isActive')}
                 type="checkbox"
-                className="rounded border-slate-300 dark:border-slate-600"
+                className="h-4 w-4 rounded border-slate-300 bg-white text-[#2E417B] dark:border-slate-600 dark:bg-slate-700"
               />
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                Active
+                User is Active
               </span>
             </label>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
             <button
               type="button"
               onClick={onClose}
@@ -228,12 +249,14 @@ export function UserFormModal({
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 dark:bg-blue-700 dark:hover:bg-blue-800"
+              className="flex-1 rounded-lg bg-[#2E417B] px-4 py-2 text-sm font-medium text-white hover:bg-[#23306a] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#3a5394] dark:hover:bg-[#2e4280]"
             >
-              {isLoading ? 'Saving...' : 'Save'}
+              {isLoading ? 'Saving...' : mode === 'create' ? 'Create User' : 'Update User'}
             </button>
           </div>
-        </form>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -2,6 +2,15 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 's3.dev-apps.utycreative.cloud',
+        pathname: '/**',
+      },
+    ],
+  },
   turbopack: {
     root: '../',
   },

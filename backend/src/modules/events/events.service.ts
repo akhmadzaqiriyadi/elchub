@@ -14,6 +14,7 @@ export type ListEventsQuery = {
 export type ManagementEventPayload = {
   title: string;
   description?: string;
+  imageUrl?: string | null;
   meetLink?: string;
   typeId: string;
   modeId: string;
@@ -183,6 +184,7 @@ async function validateAndNormalizeEventPayload(input: ManagementEventPayload) {
   return {
     title,
     description: input.description?.trim() || null,
+    imageUrl: input.imageUrl?.trim() || null,
     meetLink,
     typeId: input.typeId,
     modeId: input.modeId,
@@ -295,6 +297,7 @@ function mapEventItem(item: {
   title: string;
   slug: string;
   description: string | null;
+  imageUrl: string | null;
   meetLink: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -315,6 +318,7 @@ function mapEventItem(item: {
     title: item.title,
     slug: item.slug,
     description: item.description,
+    image: item.imageUrl,
     meetLink: item.meetLink,
     startAt: item.startAt?.toISOString() ?? null,
     endAt: item.endAt?.toISOString() ?? null,
@@ -428,6 +432,7 @@ export async function createManagementEvent(actor: AuthActor, input: ManagementE
       title: validated.title,
       slug,
       description: validated.description,
+      imageUrl: validated.imageUrl,
       meetLink: validated.meetLink,
       typeId: validated.typeId,
       modeId: validated.modeId,
@@ -479,6 +484,7 @@ export async function updateManagementEvent(actor: AuthActor, eventId: string, i
       title: validated.title,
       ...(slug ? { slug } : {}),
       description: validated.description,
+      imageUrl: validated.imageUrl,
       meetLink: validated.meetLink,
       typeId: validated.typeId,
       modeId: validated.modeId,

@@ -65,6 +65,7 @@ export function useManagementEventCrud() {
       toast.success(result.message || 'Event deleted');
       setDeleteTarget(null);
       setPendingDeleteId('');
+      queryClient.invalidateQueries({ queryKey: ['landing', 'event-highlights'] });
     },
     onError: (error, _eventId, context) => {
       context?.snapshots.forEach(([queryKey, value]) => {
@@ -75,6 +76,7 @@ export function useManagementEventCrud() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['management', 'events'] });
+      queryClient.invalidateQueries({ queryKey: ['landing', 'event-highlights'] });
     },
   });
 

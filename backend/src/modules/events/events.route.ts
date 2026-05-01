@@ -14,6 +14,7 @@ import {
   updateManagementEvent,
   updateManagementMasterData,
 } from './events.service';
+import { uploadEventBanner } from '../../lib/storage';
 
 function mapMasterDataError(error: unknown) {
   const message = error instanceof Error ? error.message : undefined;
@@ -87,6 +88,7 @@ const listEventsSuccessSchema = t.Object({
         title: t.String(),
         slug: t.String(),
         description: t.Nullable(t.String()),
+        image: t.Nullable(t.String()),
         meetLink: t.Nullable(t.String()),
         startAt: t.Nullable(t.String({ format: 'date-time' })),
         endAt: t.Nullable(t.String({ format: 'date-time' })),
@@ -203,6 +205,7 @@ const createEventBodySchema = t.Object({
 const managementEventBodySchema = t.Object({
   title: t.String({ minLength: 3, maxLength: 120 }),
   description: t.Optional(t.String()),
+  imageUrl: t.Optional(t.Union([t.String(), t.Null()])),
   meetLink: t.Optional(t.String()),
   typeId: t.String(),
   modeId: t.String(),
@@ -231,6 +234,13 @@ const authErrorSchema = t.Object({
   message: t.String(),
 });
 
+const bannerUploadSuccessSchema = t.Object({
+  success: t.Literal(true),
+  data: t.Object({
+    imageUrl: t.String(),
+  }),
+});
+
 const managementEventSuccessSchema = t.Object({
   success: t.Literal(true),
   data: t.Object({
@@ -238,6 +248,7 @@ const managementEventSuccessSchema = t.Object({
     title: t.String(),
     slug: t.String(),
     description: t.Nullable(t.String()),
+    image: t.Nullable(t.String()),
     meetLink: t.Nullable(t.String()),
     startAt: t.Nullable(t.String({ format: 'date-time' })),
     endAt: t.Nullable(t.String({ format: 'date-time' })),
@@ -338,6 +349,31 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
     },
   )
   .get(
+    '/api/events/highlights',
+    async () => {
+      const data = await listEvents({
+        statusCode: 'PUBLISHED',
+        page: 1,
+        limit: 3,
+      });
+
+      return {
+        success: true as const,
+        data,
+      };
+    },
+    {
+      response: {
+        200: listEventsSuccessSchema,
+      },
+      detail: {
+        tags: ['Events'],
+        summary: 'Event highlights',
+        description: 'Latest public published events for the landing page.',
+      },
+    },
+  )
+  .get(
     '/api/event-master-data',
     async () => {
       const data = await getEventMasterData();
@@ -396,6 +432,74 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
 const managementRoles = [UserRole.ADMIN, UserRole.ORGANIZER] as const;
 
 export const eventsManagementRoute = new Elysia({ name: 'events-management-route' })
+  .post(
+    '/api/management/uploads/event-banner',
+    async ({ headers, request, set }) => {
+      const authResult = await requireRole(headers, [...managementRoles]);
+
+      if (!authResult.ok) {
+        set.status = authResult.status;
+        return authResult.body;
+      }
+
+      try {
+        const formData = await request.formData();
+        const file = formData.get('file');
+
+        if (!(file instanceof File)) {
+          set.status = 400;
+          return {
+            success: false as const,
+            message: 'Banner image file is required',
+          };
+        }
+
+        if (!file.type.startsWith('image/')) {
+          set.status = 400;
+          return {
+            success: false as const,
+            message: 'Only image files are allowed',
+          };
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          set.status = 400;
+          return {
+            success: false as const,
+            message: 'Banner image must be 5MB or smaller',
+          };
+        }
+
+        const uploaded = await uploadEventBanner(file);
+
+        return {
+          success: true as const,
+          data: {
+            imageUrl: uploaded.imageUrl,
+          },
+        };
+      } catch (error) {
+        set.status = 500;
+        return {
+          success: false as const,
+          message: error instanceof Error ? error.message : 'Failed to upload banner image',
+        };
+      }
+    },
+    {
+      response: {
+        200: bannerUploadSuccessSchema,
+        400: authErrorSchema,
+        401: authErrorSchema,
+        403: authErrorSchema,
+      },
+      detail: {
+        tags: ['Management'],
+        summary: 'Upload event banner',
+        description: 'Upload a banner image to MinIO and return its public URL.',
+      },
+    },
+  )
   .get(
     '/api/management/events',
     async ({ headers, query, set }) => {
