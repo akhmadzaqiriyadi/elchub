@@ -6,7 +6,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { SpeakerCard, EventStats, EventRegistrationModal, useEventRegistration, usePaymentProofUpload, useEventDetail } from '@/features/events';
+import { SpeakerCard, EventStats, useEventRegistration, useEventDetail } from '@/features/events';
 import { useAuth } from '@/features/auth';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useMemo } from 'react';
@@ -91,10 +91,9 @@ export default function EventDetailPage() {
   const eventId = params.id as string;
   const { token, isAuthenticated } = useAuth();
   
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [localAddedAttendees, setLocalAddedAttendees] = useState(0);
   
   const registerMutation = useEventRegistration();
-  const uploadMutation = usePaymentProofUpload();
   
   const detailQuery = useEventDetail(eventId);
   
@@ -170,9 +169,9 @@ export default function EventDetailPage() {
       return;
     }
     
-    // Show registration modal if event is paid or has a custom form
+    // Redirect to registration page if event is paid or has a custom form
     if (!event.isFree || (event.formSchema && event.formSchema.length > 0)) {
-      setIsModalOpen(true);
+      router.push(`/events/${eventId}/register`);
     } else {
       handleDirectRegister();
     }
@@ -185,29 +184,17 @@ export default function EventDetailPage() {
         token,
         input: { customAnswers: null, paymentProofUrl: null },
       });
+      setLocalAddedAttendees((prev) => prev + 1);
       toast.success('Berhasil daftar! Cek email untuk konfirmasi.');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Gagal mendaftar. Coba lagi.');
     }
   };
 
-  const handleModalSubmit = async (payload: { customAnswers: Record<string, any> | null; paymentProofUrl: string | null }) => {
-    await registerMutation.mutateAsync({
-      eventId,
-      token,
-      input: payload,
-    });
-    setIsModalOpen(false);
-    toast.success('Berhasil daftar! Cek email untuk konfirmasi.');
-  };
-
-  const handleUploadPaymentProof = async (file: File) => {
-    const result = await uploadMutation.mutateAsync({ file, token });
-    return result;
-  };
+  const displayAttendees = event.attendees + localAddedAttendees;
 
   const stats = [
-    { label: 'Peserta', value: event.attendees, icon: <Users className="w-6 h-6 text-[#2E417B] dark:text-blue-400 mx-auto" /> },
+    { label: 'Peserta', value: displayAttendees, icon: <Users className="w-6 h-6 text-[#2E417B] dark:text-blue-400 mx-auto" /> },
     { label: 'Kapasitas', value: event.capacity, icon: <BarChart className="w-6 h-6 text-[#2E417B] dark:text-blue-400 mx-auto" /> },
     { label: 'Durasi', value: '3 jam', icon: <Clock className="w-6 h-6 text-[#2E417B] dark:text-blue-400 mx-auto" /> },
     { label: 'Harga', value: event.price === 0 ? 'Gratis' : `Rp ${event.price.toLocaleString('id-ID')}`, icon: <CreditCard className="w-6 h-6 text-[#2E417B] dark:text-blue-400 mx-auto" /> },
@@ -368,19 +355,19 @@ export default function EventDetailPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-primary/60 dark:text-slate-400">Peserta Terdaftar</span>
                   <span className="text-2xl font-bold text-primary dark:text-slate-100">
-                    {event.attendees}
+                    {displayAttendees}
                   </span>
                 </div>
                 <div className="w-full h-2 bg-primary/10 dark:bg-slate-700 rounded-full overflow-hidden mt-3">
                   <div
                     className="h-full bg-gradient-to-r from-blue-500 to-blue-600"
                     style={{
-                      width: `${(event.attendees / event.capacity) * 100}%`,
+                      width: `${(displayAttendees / event.capacity) * 100}%`,
                     }}
                   />
                 </div>
                 <p className="text-xs text-primary/60 dark:text-slate-400 mt-2">
-                  {event.capacity - event.attendees} slot tersisa
+                  {event.capacity - displayAttendees} slot tersisa
                 </p>
               </div>
 
@@ -402,15 +389,6 @@ export default function EventDetailPage() {
         </div>
       </div>
 
-      {event && (
-        <EventRegistrationModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          event={event as any}
-          onSubmit={handleModalSubmit}
-          onUploadPaymentProof={handleUploadPaymentProof}
-        />
-      )}
     </main>
   );
 }

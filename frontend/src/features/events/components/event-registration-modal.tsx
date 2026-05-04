@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import type { FormSchemaField } from '@/features/management/types';
+import { CustomDropdown } from '@/features/management/components/custom-dropdown';
 
 export type EventRegistrationModalProps = {
   isOpen: boolean;
@@ -80,6 +81,7 @@ export function EventRegistrationModal({
       onClose={isSubmitting ? () => {} : onClose}
       title="Pendaftaran Event"
       description={`Silakan lengkapi data untuk mendaftar event: ${event.title}`}
+      className="!max-w-5xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto px-1 py-2">
         {/* Dynamic Form Schema */}
@@ -94,29 +96,29 @@ export function EventRegistrationModal({
                 {field.type === 'textarea' ? (
                   <textarea
                     id={field.id}
-                    className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-100"
+                    className="flex min-h-[80px] py-2 w-full rounded-xl border border-primary/20 bg-white px-3 text-sm text-primary outline-none transition-colors placeholder:text-primary/55 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-slate-500 dark:focus:ring-slate-700/60"
                     placeholder={field.placeholder}
                     required={field.required}
                     value={(customAnswers[field.id] as string) || ''}
                     onChange={(e) => handleFieldChange(field.id, e.target.value)}
                   />
                 ) : field.type === 'select' && field.options ? (
-                  <select
-                    id={field.id}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-100"
-                    required={field.required}
-                    value={(customAnswers[field.id] as string) || ''}
-                    onChange={(e) => handleFieldChange(field.id, e.target.value)}
-                  >
-                    <option value="" disabled>
-                      Pilih salah satu
-                    </option>
-                    {field.options.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <CustomDropdown
+                      value={(customAnswers[field.id] as string) || ''}
+                      onChange={(val) => handleFieldChange(field.id, val)}
+                      placeholder="Pilih salah satu"
+                      options={field.options.map((opt) => ({ value: opt, label: opt }))}
+                    />
+                    <input
+                      type="text"
+                      className="absolute bottom-0 left-1/2 -z-10 h-0 w-0 -translate-x-1/2 opacity-0"
+                      required={field.required}
+                      value={(customAnswers[field.id] as string) || ''}
+                      onChange={() => {}}
+                      tabIndex={-1}
+                    />
+                  </div>
                 ) : field.type === 'checkbox' ? (
                   <div className="flex items-center gap-2 mt-2">
                     <input
