@@ -183,3 +183,14 @@
 .rsw-ce li {
   margin: 0.125rem 0;
 }
+
+/* Ensure prose pre and code blocks wrap */
+.prose pre {
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+}
+
+.prose code {
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+}

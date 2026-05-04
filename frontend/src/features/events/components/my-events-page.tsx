@@ -1,14 +1,47 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { Search } from 'lucide-react';
 import { useMyEvents } from '../hooks/use-my-events';
 import { EventBadge } from './event-badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Pagination } from '@/components/ui/pagination';
 
 export function MyEventsPage() {
   const { data, isLoading, error } = useMyEvents();
+  const [searchInput, setSearchInput] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit] = useState(3);
 
-  const items = data?.data ?? [];
+  const rawItems = data?.data ?? [];
+
+  // Client-side search filtering
+  const filteredItems = rawItems.filter((item: any) => {
+    if (!searchInput) return true;
+    const s = searchInput.toLowerCase();
+    return (
+      (item.event.title || '').toLowerCase().includes(s) ||
+      (item.event.type?.name || '').toLowerCase().includes(s)
+    );
+  });
+
+  // Client-side pagination
+  const totalItems = filteredItems.length;
+  const totalPages = Math.ceil(totalItems / limit) || 1;
+  const safePage = Math.min(page, totalPages);
+  
+  const startIndex = (safePage - 1) * limit;
+  const endIndex = startIndex + limit;
+  const items = filteredItems.slice(startIndex, endIndex);
+
+  const paginationMeta = {
+    page: safePage,
+    limit,
+    total: totalItems,
+    totalPages,
+  };
 
   if (isLoading) {
     return (
@@ -26,19 +59,47 @@ export function MyEventsPage() {
     );
   }
 
-  if (items.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 text-center">
-        <p className="text-lg text-slate-500 mb-4">Anda belum mendaftar ke event apa pun.</p>
-        <Link href="/events">
-          <Button className="bg-[#2E417B] hover:bg-[#1f2a52] text-white">Cari Event</Button>
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Event Saya</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Daftar semua event yang telah Anda ikuti dan status pendaftarannya.
+          </p>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative w-full max-w-md">
+          <Search className="absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            type="text"
+            placeholder="Cari event Anda..."
+            value={searchInput}
+            onChange={(e) => {
+              setSearchInput(e.target.value);
+              setPage(1);
+            }}
+            className="pl-10"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-8">
+        {items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-12 text-center bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+            <p className="text-lg text-slate-500 mb-4">
+              {searchInput ? 'Event tidak ditemukan' : 'Anda belum mendaftar ke event apa pun.'}
+            </p>
+            {!searchInput && (
+              <Link href="/events">
+                <Button className="bg-[#2E417B] hover:bg-[#1f2a52] text-white">Cari Event</Button>
+              </Link>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {items.map((item) => {
         const { event, statusCode, paymentStatus, registeredAt } = item as any; // Allow mixed types temporarily
 
@@ -127,6 +188,24 @@ export function MyEventsPage() {
           </article>
         );
       })}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-8">
+              <Pagination
+                page={paginationMeta.page}
+                limit={paginationMeta.limit}
+                total={paginationMeta.total}
+                totalPages={paginationMeta.totalPages}
+                isLoading={isLoading}
+                onPageChange={setPage}
+              />
+            </div>
+          )}
+        </>
+      )}
     </div>
+    </section>
   );
 }

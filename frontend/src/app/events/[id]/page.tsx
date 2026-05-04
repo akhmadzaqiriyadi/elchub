@@ -251,7 +251,7 @@ export default function EventDetailPage() {
                 Tentang Event
               </h2>
               <div 
-                className="text-primary/70 dark:text-slate-400 leading-relaxed prose dark:prose-invert max-w-none"
+                className="text-primary/70 dark:text-slate-400 leading-relaxed prose dark:prose-invert max-w-none break-words whitespace-pre-wrap"
                 dangerouslySetInnerHTML={{ __html: event.fullDescription }}
               />
 

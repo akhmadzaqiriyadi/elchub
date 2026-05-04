@@ -11,6 +11,10 @@ import { useQuery } from '@tanstack/react-query';
 import { CustomDropdown } from './custom-dropdown';
 import { Pagination } from '@/components/ui/pagination';
 import { Input } from '@/components/ui/input';
+import { BaseModal } from '@/components/ui/modal';
+import { AgreeModal } from '@/components/ui/agree-modal';
+import { DeclineModal } from '@/components/ui/decline-modal';
+import { Button } from '@/components/ui/button';
 
 export function ManagementEventRegistrationsPanel({ eventId }: { eventId: string }) {
   const { token } = useAuth();
@@ -18,6 +22,11 @@ export function ManagementEventRegistrationsPanel({ eventId }: { eventId: string
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  
+  // Modal states
+  const [approvingReg, setApprovingReg] = useState<{ id: string; name: string } | null>(null);
+  const [rejectingReg, setRejectingReg] = useState<{ id: string; name: string } | null>(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   
   const { data, isLoading } = useManagementEventRegistrations(eventId, {
     token: token || '',
@@ -70,6 +79,8 @@ export function ManagementEventRegistrationsPanel({ eventId }: { eventId: string
     updateRegistration({
       registrationId,
       input: { paymentStatus: 'PAID', statusCode: 'REGISTERED' }
+    }, {
+      onSuccess: () => setApprovingReg(null)
     });
   };
 
@@ -77,6 +88,8 @@ export function ManagementEventRegistrationsPanel({ eventId }: { eventId: string
     updateRegistration({
       registrationId,
       input: { paymentStatus: 'REJECTED', statusCode: 'REJECTED' }
+    }, {
+      onSuccess: () => setRejectingReg(null)
     });
   };
 
@@ -164,9 +177,12 @@ export function ManagementEventRegistrationsPanel({ eventId }: { eventId: string
                 </td>
                 <td className="px-4 py-3 text-sm">
                   {reg.paymentProofUrl ? (
-                    <a href={reg.paymentProofUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline dark:text-blue-400">
+                    <button 
+                      onClick={() => setPreviewImageUrl(reg.paymentProofUrl)}
+                      className="text-blue-600 hover:underline dark:text-blue-400 font-medium"
+                    >
                       Lihat Bukti
-                    </a>
+                    </button>
                   ) : (
                     <span className="text-slate-500 dark:text-slate-400">-</span>
                   )}
@@ -193,7 +209,7 @@ export function ManagementEventRegistrationsPanel({ eventId }: { eventId: string
                 <td className="px-4 py-3 text-center">
                   <div className="flex items-center justify-center gap-2">
                     <button
-                      onClick={() => handleApprove(reg.id)}
+                      onClick={() => setApprovingReg({ id: reg.id, name: reg.user.name || reg.user.email })}
                       disabled={isUpdating || reg.paymentStatus === 'PAID'}
                       className="rounded-full p-1.5 text-emerald-600 hover:bg-emerald-50 focus:outline-none disabled:opacity-50 dark:text-emerald-400 dark:hover:bg-emerald-900/30"
                       title="Setujui"
@@ -201,7 +217,7 @@ export function ManagementEventRegistrationsPanel({ eventId }: { eventId: string
                       <CheckCircle className="h-5 w-5" />
                     </button>
                     <button
-                      onClick={() => handleReject(reg.id)}
+                      onClick={() => setRejectingReg({ id: reg.id, name: reg.user.name || reg.user.email })}
                       disabled={isUpdating || reg.statusCode === 'REJECTED'}
                       className="rounded-full p-1.5 text-red-600 hover:bg-red-50 focus:outline-none disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/30"
                       title="Tolak"
@@ -247,6 +263,55 @@ export function ManagementEventRegistrationsPanel({ eventId }: { eventId: string
           />
         </div>
       )}
+
+      {/* Approve Confirmation Modal */}
+      <AgreeModal
+        isOpen={!!approvingReg}
+        onClose={() => setApprovingReg(null)}
+        onAgree={() => { if (approvingReg) handleApprove(approvingReg.id); }}
+        title="Setujui Pendaftaran"
+        message={`Apakah Anda yakin ingin menyetujui pendaftaran untuk ${approvingReg?.name}? User ini akan otomatis terdaftar ke event.`}
+        agreeText="Ya, Setujui"
+        declineText="Batal"
+        isLoading={isUpdating}
+      />
+
+      {/* Reject Confirmation Modal */}
+      <DeclineModal
+        isOpen={!!rejectingReg}
+        onClose={() => setRejectingReg(null)}
+        onDecline={() => { if (rejectingReg) handleReject(rejectingReg.id); }}
+        title="Tolak Pendaftaran"
+        message={`Apakah Anda yakin ingin menolak pendaftaran untuk ${rejectingReg?.name}? Tindakan ini tidak dapat dibatalkan.`}
+        declineText="Ya, Tolak"
+        cancelText="Batal"
+        isLoading={isUpdating}
+      />
+
+      {/* Image Preview Modal */}
+      <BaseModal
+        isOpen={!!previewImageUrl}
+        onClose={() => setPreviewImageUrl(null)}
+        title="Bukti Pembayaran"
+        className="max-w-2xl"
+      >
+        <div className="flex flex-col items-center">
+          {previewImageUrl && (
+            <div className="relative w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-900">
+              <img 
+                src={previewImageUrl} 
+                alt="Bukti Pembayaran" 
+                className="h-auto w-full max-h-[70vh] object-contain"
+              />
+            </div>
+          )}
+          <div className="mt-6 flex w-full justify-end">
+            <Button onClick={() => setPreviewImageUrl(null)} variant="secondary">
+              Tutup
+            </Button>
+          </div>
+        </div>
+      </BaseModal>
     </section>
   );
 }
