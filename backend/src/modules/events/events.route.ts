@@ -1,7 +1,7 @@
 import { UserRole } from '@prisma/client';
 import { Elysia, t } from 'elysia';
 
-import { requireRole } from '../../lib/rbac';
+import { requireAuth, requireRole } from '../../lib/rbac';
 import {
   createManagementEvent,
   createManagementMasterData,
@@ -15,8 +15,11 @@ import {
   updateManagementEvent,
   updateManagementMasterData,
   registerForEvent,
+  getMyEvents,
+  getEventRegistrations,
+  updateRegistrationStatus,
 } from './events.service';
-import { uploadEventBanner } from '../../lib/storage';
+import { uploadEventBanner, uploadPaymentProof } from '../../lib/storage';
 
 function mapMasterDataError(error: unknown) {
   const message = error instanceof Error ? error.message : undefined;
@@ -98,6 +101,7 @@ const listEventsSuccessSchema = t.Object({
         registrationCloseAt: t.Nullable(t.String({ format: 'date-time' })),
         timezone: t.Nullable(t.String()),
         capacity: t.Nullable(t.Number()),
+        attendees: t.Number(),
         isFree: t.Boolean(),
         price: t.Nullable(t.Number()),
         formSchema: t.Nullable(t.Any()),
@@ -268,6 +272,7 @@ const managementEventSuccessSchema = t.Object({
     registrationCloseAt: t.Nullable(t.String({ format: 'date-time' })),
     timezone: t.Nullable(t.String()),
     capacity: t.Nullable(t.Number()),
+    attendees: t.Number(),
     isFree: t.Boolean(),
     price: t.Nullable(t.Number()),
     formSchema: t.Nullable(t.Any()),
@@ -282,6 +287,7 @@ const managementEventSuccessSchema = t.Object({
     }),
     createdAt: t.String({ format: 'date-time' }),
     updatedAt: t.String({ format: 'date-time' }),
+    isRegistered: t.Optional(t.Boolean()),
   }),
 });
 
@@ -352,6 +358,44 @@ const registerEventSuccessSchema = t.Object({
   }),
 });
 
+const myEventsSuccessSchema = t.Object({
+  success: t.Literal(true),
+  data: t.Array(
+    t.Object({
+      registrationId: t.String(),
+      status: t.String(),
+      paymentStatus: t.String(),
+      registeredAt: t.String({ format: 'date-time' }),
+      event: managementEventSuccessSchema.properties.data,
+    })
+  ),
+});
+
+const eventRegistrationsSuccessSchema = t.Object({
+  success: t.Literal(true),
+  data: t.Array(
+    t.Object({
+      id: t.String(),
+      user: t.Object({
+        id: t.String(),
+        name: t.Nullable(t.String()),
+        email: t.String({ format: 'email' }),
+      }),
+      status: t.String(),
+      statusCode: t.String(),
+      paymentStatus: t.String(),
+      paymentProofUrl: t.Nullable(t.String()),
+      customAnswers: t.Nullable(t.Any()),
+      createdAt: t.String({ format: 'date-time' }),
+    })
+  ),
+});
+
+const updateRegistrationStatusBodySchema = t.Object({
+  statusCode: t.Optional(t.String()),
+  paymentStatus: t.Optional(t.String()),
+});
+
 export const eventsRoute = new Elysia({ name: 'events-route' })
   .get(
     '/api/events',
@@ -413,9 +457,17 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
   )
   .get(
     '/api/events/:id',
-    async ({ params, set }) => {
+    async ({ params, headers, set }) => {
       try {
-        const data = await getEventByIdOrSlug(params.id);
+        let userId: string | undefined;
+        if (headers.authorization) {
+          const authResult = await requireAuth(headers as Record<string, string | undefined>);
+          if (authResult.ok) {
+            userId = authResult.user.id;
+          }
+        }
+
+        const data = await getEventByIdOrSlug(params.id, userId);
 
         return {
           success: true as const,
@@ -547,6 +599,107 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
         tags: ['Events'],
         summary: 'Register for event',
         description: 'Registers the authenticated user for the specified event.',
+      },
+    },
+  )
+  .post(
+    '/api/uploads/payment-proof',
+    async ({ headers, request, set }) => {
+      const authResult = await requireAuth(headers as Record<string, string | undefined>);
+
+      if (!authResult.ok) {
+        set.status = authResult.status;
+        return authResult.body;
+      }
+
+      try {
+        const formData = await request.formData();
+        const file = formData.get('file');
+
+        if (!(file instanceof File)) {
+          set.status = 400;
+          return {
+            success: false as const,
+            message: 'Payment proof file is required',
+          };
+        }
+
+        if (!file.type.startsWith('image/')) {
+          set.status = 400;
+          return {
+            success: false as const,
+            message: 'Only image files are allowed',
+          };
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+          set.status = 400;
+          return {
+            success: false as const,
+            message: 'Payment proof size must be less than 2MB',
+          };
+        }
+
+        const { imageUrl } = await uploadPaymentProof(file);
+
+        return {
+          success: true as const,
+          data: { imageUrl },
+        };
+      } catch (error) {
+        set.status = 500;
+        return {
+          success: false as const,
+          message: error instanceof Error ? error.message : 'Failed to upload payment proof',
+        };
+      }
+    },
+    {
+      detail: {
+        tags: ['Events'],
+        summary: 'Upload payment proof',
+        description: 'Upload payment proof image for event registration.',
+      },
+    },
+  )
+  .get(
+    '/api/events/my-events',
+    async ({ headers, set }) => {
+      const authResult = await requireAuth(headers as Record<string, string | undefined>);
+
+      if (!authResult.ok) {
+        set.status = authResult.status;
+        return authResult.body;
+      }
+
+      try {
+        const data = await getMyEvents({
+          userId: authResult.user.id,
+          role: authResult.user.role,
+        });
+
+        return {
+          success: true as const,
+          data,
+        };
+      } catch (error) {
+        set.status = 500;
+        return {
+          success: false as const,
+          message: error instanceof Error ? error.message : 'Failed to fetch your events',
+        };
+      }
+    },
+    {
+      response: {
+        200: myEventsSuccessSchema,
+        401: authErrorSchema,
+        500: mutationErrorSchema,
+      },
+      detail: {
+        tags: ['Events'],
+        summary: 'Get my registered events',
+        description: 'Get a list of events the authenticated user has registered for.',
       },
     },
   );
@@ -1058,6 +1211,90 @@ export const eventsManagementRoute = new Elysia({ name: 'events-management-route
         tags: ['Management'],
         summary: 'Delete master data row',
         description: 'Role-protected delete for master data item.',
+      },
+    },
+  )
+  .get(
+    '/api/management/events/:id/registrations',
+    async ({ headers, params, set }) => {
+      const authResult = await requireRole(headers, [...managementRoles]);
+
+      if (!authResult.ok) {
+        set.status = authResult.status;
+        return authResult.body;
+      }
+
+      try {
+        const data = await getEventRegistrations(
+          { userId: authResult.user.id, role: authResult.user.role },
+          params.id,
+        );
+
+        return {
+          success: true as const,
+          data,
+        };
+      } catch (error) {
+        set.status = 500;
+        return {
+          success: false as const,
+          message: error instanceof Error ? error.message : 'Failed to fetch event registrations',
+        };
+      }
+    },
+    {
+      params: t.Object({ id: t.String() }),
+      response: {
+        200: eventRegistrationsSuccessSchema,
+        401: authErrorSchema,
+        403: authErrorSchema,
+        500: mutationErrorSchema,
+      },
+      detail: {
+        tags: ['Management'],
+        summary: 'Get event registrations',
+        description: 'Role-protected fetch for event registrations.',
+      },
+    },
+  )
+  .patch(
+    '/api/management/events/:id/registrations/:registrationId',
+    async ({ headers, params, body, set }) => {
+      const authResult = await requireRole(headers, [...managementRoles]);
+
+      if (!authResult.ok) {
+        set.status = authResult.status;
+        return authResult.body;
+      }
+
+      try {
+        const data = await updateRegistrationStatus(
+          { userId: authResult.user.id, role: authResult.user.role },
+          params.id,
+          params.registrationId,
+          body,
+        );
+
+        return {
+          success: true as const,
+          message: 'Registration updated successfully',
+          data,
+        };
+      } catch (error) {
+        set.status = 400;
+        return {
+          success: false as const,
+          message: error instanceof Error ? error.message : 'Failed to update registration',
+        };
+      }
+    },
+    {
+      params: t.Object({ id: t.String(), registrationId: t.String() }),
+      body: updateRegistrationStatusBodySchema,
+      detail: {
+        tags: ['Management'],
+        summary: 'Update event registration status',
+        description: 'Update the status or payment status of an event registration.',
       },
     },
   );

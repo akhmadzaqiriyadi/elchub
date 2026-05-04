@@ -335,6 +335,7 @@ function mapEventItem(item: {
   status: { code: string; name: string };
   level: { id: string; name: string; slug: string } | null;
   organizer: { id: string; name: string | null; email: string };
+  _count?: { registrations: number };
 }) {
   return {
     id: item.id,
@@ -357,6 +358,7 @@ function mapEventItem(item: {
     level: item.level,
     status: item.status,
     organizer: item.organizer,
+    attendees: item._count?.registrations ?? 0,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
   };
@@ -424,6 +426,7 @@ export async function listEvents(input: ListEventsQuery) {
         level: { select: { id: true, name: true, slug: true } },
         status: { select: { code: true, name: true } },
         organizer: { select: { id: true, name: true, email: true } },
+        _count: { select: { registrations: { where: { status: { code: 'REGISTERED' } } } } },
       },
     }),
     prisma.event.count({ where }),
@@ -439,7 +442,7 @@ export async function listEvents(input: ListEventsQuery) {
   };
 }
 
-export async function getEventByIdOrSlug(identifier: string) {
+export async function getEventByIdOrSlug(identifier: string, userId?: string) {
   await syncEventLifecycleStatuses();
 
   const event = await prisma.event.findFirst({
@@ -453,6 +456,7 @@ export async function getEventByIdOrSlug(identifier: string) {
       level: { select: { id: true, name: true, slug: true } },
       status: { select: { code: true, name: true } },
       organizer: { select: { id: true, name: true, email: true } },
+      _count: { select: { registrations: { where: { status: { code: 'REGISTERED' } } } } },
     },
   });
 
@@ -460,7 +464,17 @@ export async function getEventByIdOrSlug(identifier: string) {
     throw new Error('Event not found');
   }
 
-  return mapEventItem(event);
+  let isRegistered = false;
+  if (userId) {
+    const existingReg = await prisma.eventRegistration.findUnique({
+      where: {
+        eventId_userId: { eventId: event.id, userId },
+      },
+    });
+    if (existingReg) isRegistered = true;
+  }
+
+  return { ...mapEventItem(event), isRegistered };
 }
 
 export async function getManagementEventById(actor: AuthActor, eventId: string) {
@@ -477,6 +491,7 @@ export async function getManagementEventById(actor: AuthActor, eventId: string) 
       level: { select: { id: true, name: true, slug: true } },
       status: { select: { code: true, name: true } },
       organizer: { select: { id: true, name: true, email: true } },
+      _count: { select: { registrations: { where: { status: { code: 'REGISTERED' } } } } },
     },
   });
 
@@ -1022,5 +1037,120 @@ export async function registerForEvent(actor: AuthActor, eventId: string, payloa
     paymentStatus: registration.paymentStatus,
     paymentProofUrl: registration.paymentProofUrl,
     createdAt: registration.createdAt.toISOString(),
+  };
+}
+
+export async function getMyEvents(actor: AuthActor) {
+  const registrations = await prisma.eventRegistration.findMany({
+    where: { userId: actor.userId },
+    include: {
+      event: {
+        include: {
+          type: { select: { name: true, slug: true } },
+          mode: { select: { name: true, slug: true } },
+          level: { select: { id: true, name: true, slug: true } },
+          status: { select: { code: true, name: true } },
+          organizer: { select: { id: true, name: true, email: true } },
+          _count: { select: { registrations: { where: { status: { code: 'REGISTERED' } } } } },
+        }
+      },
+      status: true,
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+
+  return registrations.map(reg => ({
+    registrationId: reg.id,
+    status: reg.status.name,
+    paymentStatus: reg.paymentStatus,
+    registeredAt: reg.createdAt.toISOString(),
+    event: mapEventItem(reg.event)
+  }));
+}
+
+export async function getEventRegistrations(actor: AuthActor, eventId: string) {
+  const event = await prisma.event.findFirst({
+    where: {
+      id: eventId,
+      ...(actor.role === 'ORGANIZER' ? { organizerId: actor.userId } : {}),
+    }
+  });
+
+  if (!event) {
+    throw new Error('Event not found or you do not have permission');
+  }
+
+  const registrations = await prisma.eventRegistration.findMany({
+    where: { eventId },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+      status: true,
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+
+  return registrations.map(reg => ({
+    id: reg.id,
+    user: reg.user,
+    status: reg.status.name,
+    statusCode: reg.status.code,
+    paymentStatus: reg.paymentStatus,
+    paymentProofUrl: reg.paymentProofUrl,
+    customAnswers: reg.customAnswers,
+    createdAt: reg.createdAt.toISOString(),
+  }));
+}
+
+export async function updateRegistrationStatus(actor: AuthActor, eventId: string, registrationId: string, payload: { statusCode?: string; paymentStatus?: string }) {
+  const event = await prisma.event.findFirst({
+    where: {
+      id: eventId,
+      ...(actor.role === 'ORGANIZER' ? { organizerId: actor.userId } : {}),
+    }
+  });
+
+  if (!event) {
+    throw new Error('Event not found or you do not have permission');
+  }
+
+  const registration = await prisma.eventRegistration.findUnique({
+    where: { id: registrationId }
+  });
+
+  if (!registration || registration.eventId !== eventId) {
+    throw new Error('Registration not found');
+  }
+
+  const updateData: any = {};
+
+  if (payload.statusCode) {
+    const status = await prisma.registrationStatus.findFirst({
+      where: { code: payload.statusCode }
+    });
+    if (!status) throw new Error('Invalid status code');
+    updateData.statusId = status.id;
+  }
+
+  if (payload.paymentStatus) {
+    updateData.paymentStatus = payload.paymentStatus;
+  }
+
+  const updated = await prisma.eventRegistration.update({
+    where: { id: registrationId },
+    data: updateData,
+    include: {
+      status: true,
+      user: { select: { id: true, name: true, email: true } },
+    }
+  });
+
+  return {
+    id: updated.id,
+    user: updated.user,
+    status: updated.status.name,
+    statusCode: updated.status.code,
+    paymentStatus: updated.paymentStatus,
+    paymentProofUrl: updated.paymentProofUrl,
+    createdAt: updated.createdAt.toISOString(),
   };
 }

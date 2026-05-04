@@ -69,3 +69,80 @@ Jika pendaftaran berhasil, backend akan mengembalikan status `200 OK` dengan for
 - **Event Gratis (`isFree: true`)**: Saat mendaftar, `paymentStatus` otomatis menjadi `FREE`.
 - **Event Berbayar (`isFree: false`)**: Saat mendaftar, `paymentStatus` akan terset menjadi `WAITING_VERIFICATION`. Nanti admin bertugas melakukan validasi (terima/tolak) di Management Dashboard.
 - Status pendaftaran utama (kehadiran) secara *default* akan menembak ke ID Master Data yang ber-kode `REGISTERED`.
+
+---
+
+## 📅 Riwayat Pendaftaran (User)
+
+Endpoint ini digunakan oleh user untuk melihat semua event yang sudah dia daftarkan.
+
+- **URL:** `GET /api/events/my-events`
+- **Authentication:** Wajib (Semua role)
+
+### Contoh Response
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "registrationId": "cmoq...",
+      "status": "Registered",
+      "paymentStatus": "WAITING_VERIFICATION",
+      "registeredAt": "2026-05-04T09:00:00.000Z",
+      "event": {
+        "id": "event-id-123",
+        "title": "Backend Workshop",
+        ...
+      }
+    }
+  ]
+}
+```
+
+---
+
+## 👨‍💼 Management Endpoint (Organizer / Admin)
+
+Fitur untuk panitia / penyelenggara dalam mengelola dan menyetujui (approve) pendaftar.
+
+### 1. List Pendaftar Event
+- **URL:** `GET /api/management/events/:id/registrations`
+- **Authentication:** Wajib (`ORGANIZER` atau `ADMIN`)
+
+**Contoh Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "reg-id-123",
+      "user": {
+        "id": "user-id-456",
+        "name": "Budi Santoso",
+        "email": "budi@example.com"
+      },
+      "status": "Registered",
+      "statusCode": "REGISTERED",
+      "paymentStatus": "WAITING_VERIFICATION",
+      "paymentProofUrl": "https://storage...",
+      "customAnswers": { ... },
+      "createdAt": "2026-05-04T09:00:00.000Z"
+    }
+  ]
+}
+```
+
+### 2. Update Status Pendaftar (Approve / Reject)
+- **URL:** `PATCH /api/management/events/:id/registrations/:registrationId`
+- **Authentication:** Wajib (`ORGANIZER` atau `ADMIN`)
+- **Body Payload (Opsional):**
+  - `statusCode` (string): Contoh `"REGISTERED"`, `"REJECTED"`, `"CANCELLED"`
+  - `paymentStatus` (string): Contoh `"PAID"`, `"WAITING_VERIFICATION"`, `"REJECTED"`
+
+**Contoh Payload:**
+```json
+{
+  "statusCode": "REGISTERED",
+  "paymentStatus": "PAID"
+}
+```
