@@ -95,7 +95,7 @@ export default function EventDetailPage() {
   
   const registerMutation = useEventRegistration();
   
-  const detailQuery = useEventDetail(eventId);
+  const detailQuery = useEventDetail(eventId, token ?? undefined);
   
   const event = useMemo(() => {
     if (!detailQuery.data) return null;
@@ -131,6 +131,7 @@ export default function EventDetailPage() {
       speakers: [] as any[],
       agenda: [] as any[],
       requirements: [] as string[],
+      isRegistered: data.isRegistered || false,
     };
   }, [detailQuery.data]);
 
@@ -374,10 +375,10 @@ export default function EventDetailPage() {
               {/* Register Button */}
               <Button
                 onClick={handleRegisterClick}
-                disabled={registerMutation.isPending}
-                className="w-full rounded-lg bg-[#2E417B] hover:bg-[#1f2a52] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+                disabled={registerMutation.isPending || event.isRegistered}
+                className="w-full rounded-lg bg-[#2E417B] hover:bg-[#1f2a52] text-white dark:bg-blue-600 dark:hover:bg-blue-700 disabled:opacity-70"
               >
-                {registerMutation.isPending ? 'Mendaftar...' : 'Daftar Sekarang'}
+                {event.isRegistered ? 'Sudah Terdaftar' : registerMutation.isPending ? 'Mendaftar...' : 'Daftar Sekarang'}
               </Button>
 
               {/* Additional Info */}

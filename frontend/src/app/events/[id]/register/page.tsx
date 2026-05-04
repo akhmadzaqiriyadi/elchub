@@ -122,7 +122,6 @@ export default function EventRegistrationPage() {
       <div className="container mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-center justify-between">
           <Button
-            variant="ghost"
             onClick={() => router.push(`/events/${eventId}`)}
             className="flex items-center gap-2 text-primary dark:text-blue-400 hover:bg-slate-200 dark:hover:bg-slate-800"
           >

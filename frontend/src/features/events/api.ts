@@ -60,6 +60,7 @@ export type EventDetailPayload = {
     registrationCloseAt: string | null;
     timezone: string | null;
     capacity: number | null;
+    attendees: number;
     isFree: boolean;
     price: number | null;
     formSchema: any | null;
@@ -71,12 +72,14 @@ export type EventDetailPayload = {
     attendees?: number;
     createdAt: string;
     updatedAt: string;
+    isRegistered?: boolean;
   };
 };
 
-export function getEventDetail(slug: string) {
+export function getEventDetail(slug: string, token?: string) {
   return apiRequest<EventDetailPayload>(`/events/${slug}`, {
     method: 'GET',
+    ...(token ? { token } : {}),
   });
 }
 
