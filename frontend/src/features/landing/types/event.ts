@@ -15,4 +15,5 @@ export interface Event {
   time?: string;
   instructor?: string;
   participants?: number;
+  price?: number | null;
 }

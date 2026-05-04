@@ -41,6 +41,9 @@ function mapEventToForm(event: EventListItem): EventFormState {
     registrationCloseAt: toDatetimeLocalValue(event.registrationCloseAt),
     timezone: event.timezone ?? 'Asia/Jakarta',
     capacity: typeof event.capacity === 'number' ? String(event.capacity) : '',
+    isFree: event.isFree ?? true,
+    price: typeof event.price === 'number' ? String(event.price) : '',
+    formSchema: Array.isArray(event.formSchema) ? event.formSchema : [],
   };
 }
 

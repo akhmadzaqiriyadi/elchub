@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type { ManagementEventMutationInput } from '../types';
+import type { ManagementEventMutationInput, FormSchemaField } from '../types';
 
 export type EventFormState = {
   title: string;
@@ -17,6 +17,9 @@ export type EventFormState = {
   registrationCloseAt: string;
   timezone: string;
   capacity: string;
+  isFree: boolean;
+  price: string;
+  formSchema: FormSchemaField[];
 };
 
 export type EventFormErrors = Partial<Record<keyof EventFormState, string>>;
@@ -36,6 +39,9 @@ export const initialEventFormState: EventFormState = {
   registrationCloseAt: '',
   timezone: 'Asia/Jakarta',
   capacity: '',
+  isFree: true,
+  price: '',
+  formSchema: [],
 };
 
 const eventFormSchema = z
@@ -62,6 +68,13 @@ const eventFormSchema = z
       .trim()
       .refine((value) => value === '' || (/^\d+$/.test(value) && Number(value) >= 1), {
         message: 'Capacity must be at least 1 when quota is enabled',
+      }),
+    isFree: z.boolean(),
+    price: z
+      .string()
+      .trim()
+      .refine((value) => value === '' || (/^\d+(\.\d+)?$/.test(value) && Number(value) >= 0), {
+        message: 'Price must be a non-negative number',
       }),
   })
   .superRefine((value, ctx) => {
@@ -152,6 +165,29 @@ export function validateEventForm(input: EventFormState, modeOptions?: Array<{ i
     conditionalErrors.meetLink = 'Meet link is required for online mode';
   }
 
+  // Price validation: required when isFree is false
+  if (!input.isFree) {
+    const priceValue = input.price.trim();
+    if (!priceValue) {
+      conditionalErrors.price = 'Price is required for paid events';
+    } else if (Number(priceValue) < 0) {
+      conditionalErrors.price = 'Price must be a non-negative number';
+    }
+  }
+
+  // FormSchema validation: each field must have an id and label
+  for (let i = 0; i < input.formSchema.length; i++) {
+    const field = input.formSchema[i];
+    if (!field.label.trim()) {
+      conditionalErrors[`formSchema` as keyof EventFormState] = `Question ${i + 1} must have a label`;
+      break;
+    }
+    if (field.type === 'select' && (!field.options || field.options.filter(Boolean).length < 1)) {
+      conditionalErrors[`formSchema` as keyof EventFormState] = `Question ${i + 1} (select) must have at least one option`;
+      break;
+    }
+  }
+
   if (result.success && Object.keys(conditionalErrors).length === 0) {
     return {
       isValid: true,
@@ -190,6 +226,10 @@ export function validateEventForm(input: EventFormState, modeOptions?: Array<{ i
 }
 
 export function buildManagementEventPayload(formState: EventFormState): ManagementEventMutationInput {
+  const isFree = formState.isFree;
+  const price = isFree ? null : (formState.price ? Number(formState.price) : null);
+  const formSchema = formState.formSchema?.length > 0 ? formState.formSchema : null;
+
   return {
     title: formState.title.trim(),
     description: formState.description.trim() || undefined,
@@ -205,5 +245,8 @@ export function buildManagementEventPayload(formState: EventFormState): Manageme
     registrationCloseAt: toIsoOrNull(formState.registrationCloseAt),
     timezone: formState.timezone.trim() || 'Asia/Jakarta',
     capacity: formState.capacity ? Number(formState.capacity) : null,
+    isFree,
+    price,
+    formSchema,
   };
 }

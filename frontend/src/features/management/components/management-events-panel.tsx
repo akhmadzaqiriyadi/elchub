@@ -237,6 +237,7 @@ export function ManagementEventsPanel() {
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Title</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Type</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Mode</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Pricing</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
               <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Actions</th>
             </tr>
@@ -244,14 +245,14 @@ export function ManagementEventsPanel() {
           <tbody className="divide-y divide-slate-200 bg-white dark:divide-slate-700 dark:bg-slate-900">
             {eventsQuery.isLoading && (
               <tr>
-                <td colSpan={5} className="px-4 py-5 text-sm text-slate-500">
+                <td colSpan={6} className="px-4 py-5 text-sm text-slate-500">
                   Loading events...
                 </td>
               </tr>
             )}
             {!eventsQuery.isLoading && items.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-5 text-sm text-slate-500">
+                <td colSpan={6} className="px-4 py-5 text-sm text-slate-500">
                   No events found.
                 </td>
               </tr>
@@ -261,6 +262,17 @@ export function ManagementEventsPanel() {
                 <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">{item.title}</td>
                 <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">{item.type.name}</td>
                 <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">{item.mode.name}</td>
+                <td className="px-4 py-3 text-sm">
+                  {item.isFree ? (
+                    <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">Gratis</span>
+                  ) : (
+                    <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                      {typeof item.price === 'number'
+                        ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.price)
+                        : 'Berbayar'}
+                    </span>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
                   <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusBadgeClass(item.status.code)}`}>
                     {item.status.name}

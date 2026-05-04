@@ -6,8 +6,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { SpeakerCard, EventStats } from '@/features/events';
-import { useParams } from 'next/navigation';
+import { SpeakerCard, EventStats, EventRegistrationModal, useEventRegistration, usePaymentProofUpload } from '@/features/events';
+import { useAuth } from '@/features/auth';
+import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -25,6 +26,8 @@ const mockEventDetails: Record<
     category: string;
     image?: string;
     price: number;
+    isFree: boolean;
+    formSchema?: any[] | null;
     attendees: number;
     capacity: number;
     speakers: any[];
@@ -42,7 +45,16 @@ const mockEventDetails: Record<
     time: '14:00 - 17:00',
     location: 'Online via Zoom',
     category: 'Workshop',
-    price: 0,
+    price: 150000,
+    isFree: false,
+    formSchema: [
+      {
+        id: 'question_1',
+        type: 'textarea',
+        label: 'Mengapa Anda ingin mengikuti event ini?',
+        required: true,
+      }
+    ],
     attendees: 156,
     capacity: 500,
     speakers: [
@@ -74,10 +86,48 @@ const mockEventDetails: Record<
 
 export default function EventDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const eventId = params.id as string;
-  const [isRegistering, setIsRegistering] = useState(false);
+  const { token, isAuthenticated } = useAuth();
+  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const registerMutation = useEventRegistration();
+  const uploadMutation = usePaymentProofUpload();
 
-  const event = mockEventDetails[eventId];
+  let event = mockEventDetails[eventId];
+
+  if (!event) {
+    // Fallback for events not in mockEventDetails but present in mockEvents list
+    const priceMap: Record<string, number> = { '2': 150000, '3': 0, '4': 500000, '5': 0, '6': 0 };
+    const price = priceMap[eventId] ?? 0;
+    
+    event = {
+      id: eventId,
+      title: `Event Dummy ${eventId}`,
+      description: 'Ini adalah event dummy untuk testing integrasi UI.',
+      fullDescription: 'Detail event ini di-generate secara otomatis karena belum ada endpoint public GET /api/events/:id di backend.',
+      date: 'TBD',
+      time: 'TBD',
+      location: 'Online',
+      category: 'General',
+      price: price,
+      isFree: price === 0,
+      formSchema: price === 0 ? null : [
+        {
+          id: 'question_1',
+          type: 'text',
+          label: 'Dari mana Anda mengetahui event ini?',
+          required: true,
+        }
+      ],
+      attendees: 10,
+      capacity: 100,
+      speakers: [],
+      agenda: [],
+      requirements: ['Koneksi internet stabil'],
+    };
+  }
 
   if (!event) {
     return (
@@ -93,19 +143,47 @@ export default function EventDetailPage() {
     );
   }
 
-  const handleRegister = async () => {
-    setIsRegistering(true);
+  const handleRegisterClick = () => {
+    if (!isAuthenticated) {
+      toast.error('Silakan login terlebih dahulu untuk mendaftar event.');
+      router.push(`/login?callbackUrl=/events/${eventId}`);
+      return;
+    }
+    
+    // Show registration modal if event is paid or has a custom form
+    if (!event.isFree || (event.formSchema && event.formSchema.length > 0)) {
+      setIsModalOpen(true);
+    } else {
+      handleDirectRegister();
+    }
+  };
+
+  const handleDirectRegister = async () => {
     try {
-      // TODO: Call API to register for event
-      // await fetch(`/api/events/${eventId}/register`, { method: 'POST' });
-      
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await registerMutation.mutateAsync({
+        eventId,
+        token,
+        input: { customAnswers: null, paymentProofUrl: null },
+      });
       toast.success('Berhasil daftar! Cek email untuk konfirmasi.');
     } catch (error) {
-      toast.error('Gagal mendaftar. Coba lagi.');
-    } finally {
-      setIsRegistering(false);
+      toast.error(error instanceof Error ? error.message : 'Gagal mendaftar. Coba lagi.');
     }
+  };
+
+  const handleModalSubmit = async (payload: { customAnswers: Record<string, any> | null; paymentProofUrl: string | null }) => {
+    await registerMutation.mutateAsync({
+      eventId,
+      token,
+      input: payload,
+    });
+    setIsModalOpen(false);
+    toast.success('Berhasil daftar! Cek email untuk konfirmasi.');
+  };
+
+  const handleUploadPaymentProof = async (file: File) => {
+    const result = await uploadMutation.mutateAsync({ file, token });
+    return result;
   };
 
   const stats = [
@@ -278,11 +356,11 @@ export default function EventDetailPage() {
 
               {/* Register Button */}
               <Button
-                onClick={handleRegister}
-                disabled={isRegistering}
+                onClick={handleRegisterClick}
+                disabled={registerMutation.isPending}
                 className="w-full rounded-lg bg-[#2E417B] hover:bg-[#1f2a52] text-white dark:bg-blue-600 dark:hover:bg-blue-700"
               >
-                {isRegistering ? 'Mendaftar...' : 'Daftar Sekarang'}
+                {registerMutation.isPending ? 'Mendaftar...' : 'Daftar Sekarang'}
               </Button>
 
               {/* Additional Info */}
@@ -293,6 +371,16 @@ export default function EventDetailPage() {
           </div>
         </div>
       </div>
+
+      {event && (
+        <EventRegistrationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          event={event as any}
+          onSubmit={handleModalSubmit}
+          onUploadPaymentProof={handleUploadPaymentProof}
+        />
+      )}
     </main>
   );
 }

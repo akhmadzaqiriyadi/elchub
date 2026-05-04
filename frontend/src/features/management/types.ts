@@ -1,3 +1,22 @@
+// ============================================================================
+// Form Schema Types (Custom Registration Forms)
+// ============================================================================
+
+export type FormSchemaFieldType = 'text' | 'textarea' | 'select' | 'checkbox' | 'number' | 'email';
+
+export type FormSchemaField = {
+  id: string;
+  type: FormSchemaFieldType;
+  label: string;
+  required?: boolean;
+  options?: string[];
+  placeholder?: string;
+};
+
+// ============================================================================
+// Event Types
+// ============================================================================
+
 export type EventListItem = {
   id: string;
   title: string;
@@ -11,6 +30,9 @@ export type EventListItem = {
   registrationCloseAt: string | null;
   timezone: string | null;
   capacity: number | null;
+  isFree: boolean;
+  price: number | null;
+  formSchema: FormSchemaField[] | null;
   type: {
     name: string;
     slug: string;
@@ -100,6 +122,9 @@ export type ManagementEventMutationInput = {
   registrationCloseAt?: string | null;
   timezone?: string;
   capacity?: number | null;
+  isFree?: boolean;
+  price?: number | null;
+  formSchema?: FormSchemaField[] | null;
 };
 
 export type ManagementEventDetailPayload = {

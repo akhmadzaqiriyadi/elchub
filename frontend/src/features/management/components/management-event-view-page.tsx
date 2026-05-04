@@ -132,6 +132,57 @@ export function ManagementEventViewPage({ eventId }: { eventId: string }) {
             <Input readOnly value={typeof event.capacity === 'number' ? String(event.capacity) : '-'} className="h-auto rounded-lg border-slate-300 bg-slate-50 py-2 dark:border-slate-600 dark:bg-slate-800" />
           </div>
 
+          {/* Pricing */}
+          <div>
+            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Pricing</label>
+            {event.isFree ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                🎉 Gratis
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                💰 {typeof event.price === 'number'
+                  ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(event.price)
+                  : 'Berbayar'}
+              </span>
+            )}
+          </div>
+
+          {/* Custom Form Schema Preview */}
+          {event.formSchema && Array.isArray(event.formSchema) && event.formSchema.length > 0 && (
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Custom Registration Form ({event.formSchema.length} questions)
+              </label>
+              <div className="space-y-2 rounded-xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-700 dark:bg-slate-800/50">
+                {event.formSchema.map((field: { id: string; type: string; label: string; required?: boolean; options?: string[] }, idx: number) => (
+                  <div
+                    key={field.id}
+                    className="flex items-start gap-3 rounded-lg border border-slate-100 bg-white p-3 dark:border-slate-700 dark:bg-slate-800"
+                  >
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#2E417B] text-[10px] font-bold text-white">
+                      {idx + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                        {field.label}
+                        {field.required && <span className="ml-1 text-rose-500">*</span>}
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-400">
+                        Type: <span className="font-medium text-slate-500 dark:text-slate-400">{field.type}</span>
+                        {field.options && field.options.length > 0 && (
+                          <span className="ml-2">
+                            Options: {field.options.join(', ')}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="md:col-span-2">
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">Description</label>
             {event.description ? (

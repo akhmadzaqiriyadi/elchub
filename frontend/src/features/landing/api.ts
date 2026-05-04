@@ -14,6 +14,8 @@ type PublicEventListItem = {
   registrationCloseAt: string | null;
   timezone: string | null;
   capacity: number | null;
+  isFree: boolean;
+  price: number | null;
   type: {
     name: string;
     slug: string;
@@ -137,12 +139,13 @@ function mapPublicEventToLandingEvent(item: PublicEventListItem): Event {
     description: description || item.title,
     type,
     status: mapEventStatus(item),
-    isFree: false,
+    isFree: item.isFree,
     isExclusive: type === 'mentoring',
     image: item.image ?? undefined,
     date: formatDate(item.startAt ?? item.createdAt),
     time: formatTimeRange(item.startAt, item.endAt),
     instructor: item.organizer.name ?? item.organizer.email,
+    price: item.price,
   };
 }
 

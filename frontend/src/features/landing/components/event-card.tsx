@@ -48,8 +48,12 @@ export function EventCard({ event, onAction, className }: EventCardProps) {
         {/* badges overlay - absolute so they don't push content */}
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
           {event.status === 'live' && <Badge variant="live">Live Now</Badge>}
-          {event.isFree && <Badge variant="free">Free</Badge>}
-          {event.isExclusive && <Badge variant="exclusive">Exclusive</Badge>}
+          {event.isFree ? (
+            <Badge variant="free">Gratis</Badge>
+          ) : (
+            <Badge variant="exclusive">Berbayar</Badge>
+          )}
+          {event.isExclusive && <Badge variant="exclusive">Eksklusif</Badge>}
         </div>
       </div>
 
@@ -69,16 +73,26 @@ export function EventCard({ event, onAction, className }: EventCardProps) {
 
         {/* clamp description to keep vertical rhythm consistent */}
         <p
-          className="mt-2 min-h-[4.5rem] text-sm leading-6 text-slate-600 dark:text-slate-400"
+          className="mt-2 min-h-[2.5rem] text-sm leading-6 text-slate-600 dark:text-slate-400"
           style={{
             display: '-webkit-box',
-            WebkitLineClamp: 3,
+            WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
           }}
         >
           {event.description}
         </p>
+
+        {/* Price Display */}
+        {event.price !== undefined && (
+          <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Harga</p>
+            <p className="text-lg font-bold text-[#2E417B] dark:text-blue-400">
+              {event.isFree ? 'Gratis' : `Rp ${event.price?.toLocaleString('id-ID') ?? 'N/A'}`}
+            </p>
+          </div>
+        )}
 
         {/* Meta Info */}
         <div className="mt-4 min-h-[5.5rem] space-y-2 border-t border-slate-200 pt-4 dark:border-slate-700">

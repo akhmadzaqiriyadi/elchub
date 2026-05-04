@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { WarningModal } from '@/components/ui/warning-modal';
 import { EventBannerField } from './event-banner-field';
+import { EventPricingSection } from './event-pricing-section';
+import { FormSchemaBuilder } from './form-schema-builder';
 import { CustomDropdown } from './custom-dropdown';
 import { ManagementEventDatetimeInput } from './management-event-datetime-input';
 import { useManagementEventEdit } from '../hooks/use-management-event-edit';
@@ -202,6 +204,27 @@ export function ManagementEventEditPage({ eventId }: { eventId: string }) {
               />
               {formErrors.capacity && <p className="mt-1 text-xs text-red-600">{formErrors.capacity}</p>}
             </div>
+
+            {/* Pricing Section */}
+            <EventPricingSection
+              isFree={formState.isFree}
+              price={formState.price}
+              onIsFreeChange={(isFree) => {
+                setField('isFree', isFree);
+                if (isFree) setField('price', '');
+              }}
+              onPriceChange={(price) => setField('price', price)}
+              priceError={formErrors.price}
+            />
+          </div>
+
+          {/* Custom Form Schema Builder */}
+          <div className="mt-5">
+            <FormSchemaBuilder
+              value={formState.formSchema}
+              onChange={(nextSchema) => setField('formSchema', nextSchema)}
+              error={formErrors.formSchema}
+            />
           </div>
 
           <div className="mt-6 flex justify-end gap-2">
