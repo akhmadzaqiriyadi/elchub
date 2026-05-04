@@ -69,7 +69,6 @@ export type EventDetailPayload = {
     level: { id: string; name: string; slug: string } | null;
     status: { code: string; name: string };
     organizer: { id: string; name: string | null; email: string };
-    attendees?: number;
     createdAt: string;
     updatedAt: string;
     isRegistered?: boolean;
