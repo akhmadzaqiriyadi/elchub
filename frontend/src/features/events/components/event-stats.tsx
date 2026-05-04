@@ -6,7 +6,7 @@
 interface EventStat {
   label: string;
   value: string | number;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 interface EventStatsProps {

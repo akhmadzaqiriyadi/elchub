@@ -10,6 +10,7 @@ import {
   getManagementEventById,
   getEventMasterData,
   listEvents,
+  getEventByIdOrSlug,
   listManagementMasterData,
   updateManagementEvent,
   updateManagementMasterData,
@@ -407,6 +408,37 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
         tags: ['Events'],
         summary: 'Event highlights',
         description: 'Latest public published events for the landing page.',
+      },
+    },
+  )
+  .get(
+    '/api/events/:id',
+    async ({ params, set }) => {
+      try {
+        const data = await getEventByIdOrSlug(params.id);
+
+        return {
+          success: true as const,
+          data,
+        };
+      } catch (error) {
+        set.status = 404;
+        return {
+          success: false as const,
+          message: error instanceof Error ? error.message : 'Event not found',
+        };
+      }
+    },
+    {
+      params: t.Object({ id: t.String() }),
+      response: {
+        200: managementEventSuccessSchema,
+        404: mutationErrorSchema,
+      },
+      detail: {
+        tags: ['Events'],
+        summary: 'Get event by id or slug',
+        description: 'Get public event details by id or slug.',
       },
     },
   )

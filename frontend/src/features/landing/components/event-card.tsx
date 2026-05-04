@@ -81,12 +81,12 @@ export function EventCard({ event, onAction, className }: EventCardProps) {
             overflow: 'hidden',
           }}
         >
-          {event.description}
+          {typeof event.description === 'string' ? event.description.replace(/<[^>]*>?/gm, '') : event.description}
         </p>
 
         {/* Price Display */}
         {event.price !== undefined && (
-          <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+          <div className="mt-2 pt-2 border-slate-200 dark:border-slate-700">
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Harga</p>
             <p className="text-lg font-bold text-[#2E417B] dark:text-blue-400">
               {event.isFree ? 'Gratis' : `Rp ${event.price?.toLocaleString('id-ID') ?? 'N/A'}`}

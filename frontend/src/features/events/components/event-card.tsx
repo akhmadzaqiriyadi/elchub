@@ -83,7 +83,9 @@ export function EventCard({
         </h3>
 
         {/* Description */}
-        <p className="text-sm text-primary/70 dark:text-slate-400 mt-2 line-clamp-2">{description}</p>
+        <p className="text-sm text-primary/70 dark:text-slate-400 mt-2 line-clamp-2">
+          {typeof description === 'string' ? description.replace(/<[^>]*>?/gm, '') : description}
+        </p>
 
         {/* Meta Info */}
         <div className="space-y-2 mt-4 text-sm text-primary/60 dark:text-slate-400">

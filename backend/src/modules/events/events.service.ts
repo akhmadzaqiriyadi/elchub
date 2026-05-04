@@ -439,6 +439,30 @@ export async function listEvents(input: ListEventsQuery) {
   };
 }
 
+export async function getEventByIdOrSlug(identifier: string) {
+  await syncEventLifecycleStatuses();
+
+  const event = await prisma.event.findFirst({
+    where: {
+      OR: [{ id: identifier }, { slug: identifier }],
+      status: { code: { not: 'DRAFT' } }, // Only allow public events
+    },
+    include: {
+      type: { select: { name: true, slug: true } },
+      mode: { select: { name: true, slug: true } },
+      level: { select: { id: true, name: true, slug: true } },
+      status: { select: { code: true, name: true } },
+      organizer: { select: { id: true, name: true, email: true } },
+    },
+  });
+
+  if (!event) {
+    throw new Error('Event not found');
+  }
+
+  return mapEventItem(event);
+}
+
 export async function getManagementEventById(actor: AuthActor, eventId: string) {
   await syncEventLifecycleStatuses();
 
@@ -922,7 +946,7 @@ export type RegisterEventPayload = {
 
 export async function registerForEvent(actor: AuthActor, eventId: string, payload: RegisterEventPayload) {
   const event = await prisma.event.findFirst({
-    where: { id: eventId },
+    where: { OR: [{ id: eventId }, { slug: eventId }] },
     include: {
       status: true,
       _count: {
@@ -969,7 +993,7 @@ export async function registerForEvent(actor: AuthActor, eventId: string, payloa
   const existingRegistration = await prisma.eventRegistration.findUnique({
     where: {
       eventId_userId: {
-        eventId,
+        eventId: event.id,
         userId: actor.userId,
       }
     }
@@ -981,7 +1005,7 @@ export async function registerForEvent(actor: AuthActor, eventId: string, payloa
 
   const registration = await prisma.eventRegistration.create({
     data: {
-      eventId,
+      eventId: event.id,
       userId: actor.userId,
       statusId: registeredStatus.id,
       customAnswers: payload.customAnswers ? (payload.customAnswers as any) : undefined,

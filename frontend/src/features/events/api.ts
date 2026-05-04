@@ -44,3 +44,37 @@ export function uploadPaymentProof(file: File, token: string) {
     token,
   });
 }
+
+export type EventDetailPayload = {
+  success: boolean;
+  data: {
+    id: string;
+    title: string;
+    slug: string;
+    description: string | null;
+    image: string | null;
+    meetLink: string | null;
+    startAt: string | null;
+    endAt: string | null;
+    registrationOpenAt: string | null;
+    registrationCloseAt: string | null;
+    timezone: string | null;
+    capacity: number | null;
+    isFree: boolean;
+    price: number | null;
+    formSchema: any | null;
+    type: { name: string; slug: string };
+    mode: { name: string; slug: string };
+    level: { id: string; name: string; slug: string } | null;
+    status: { code: string; name: string };
+    organizer: { id: string; name: string | null; email: string };
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export function getEventDetail(slug: string) {
+  return apiRequest<EventDetailPayload>(`/events/${slug}`, {
+    method: 'GET',
+  });
+}

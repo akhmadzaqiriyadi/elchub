@@ -6,11 +6,12 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { SpeakerCard, EventStats, EventRegistrationModal, useEventRegistration, usePaymentProofUpload } from '@/features/events';
+import { SpeakerCard, EventStats, EventRegistrationModal, useEventRegistration, usePaymentProofUpload, useEventDetail } from '@/features/events';
 import { useAuth } from '@/features/auth';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
+import { Users, BarChart, Clock, CreditCard } from 'lucide-react';
 
 // Mock event details
 const mockEventDetails: Record<
@@ -94,42 +95,61 @@ export default function EventDetailPage() {
   
   const registerMutation = useEventRegistration();
   const uploadMutation = usePaymentProofUpload();
-
-  let event = mockEventDetails[eventId];
-
-  if (!event) {
-    // Fallback for events not in mockEventDetails but present in mockEvents list
-    const priceMap: Record<string, number> = { '2': 150000, '3': 0, '4': 500000, '5': 0, '6': 0 };
-    const price = priceMap[eventId] ?? 0;
+  
+  const detailQuery = useEventDetail(eventId);
+  
+  const event = useMemo(() => {
+    if (!detailQuery.data) return null;
     
-    event = {
-      id: eventId,
-      title: `Event Dummy ${eventId}`,
-      description: 'Ini adalah event dummy untuk testing integrasi UI.',
-      fullDescription: 'Detail event ini di-generate secara otomatis karena belum ada endpoint public GET /api/events/:id di backend.',
-      date: 'TBD',
-      time: 'TBD',
-      location: 'Online',
-      category: 'General',
-      price: price,
-      isFree: price === 0,
-      formSchema: price === 0 ? null : [
-        {
-          id: 'question_1',
-          type: 'text',
-          label: 'Dari mana Anda mengetahui event ini?',
-          required: true,
-        }
-      ],
-      attendees: 10,
-      capacity: 100,
-      speakers: [],
-      agenda: [],
-      requirements: ['Koneksi internet stabil'],
+    const data = detailQuery.data;
+    
+    const startDate = data.startAt ? new Date(data.startAt) : null;
+    const endDate = data.endAt ? new Date(data.endAt) : null;
+    
+    const formattedDate = startDate 
+      ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(startDate)
+      : 'TBD';
+      
+    const formattedTime = startDate && endDate
+      ? `${new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit' }).format(startDate)} - ${new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit' }).format(endDate)}`
+      : 'TBD';
+
+    return {
+      id: data.id,
+      title: data.title,
+      description: data.description || '',
+      fullDescription: data.description || 'Tidak ada deskripsi lengkap.',
+      date: formattedDate,
+      time: formattedTime,
+      location: data.meetLink || (data.mode.slug === 'online' ? 'Online' : 'Offline'),
+      category: data.type.name,
+      image: data.image || undefined,
+      price: data.price || 0,
+      isFree: data.isFree,
+      formSchema: data.formSchema,
+      attendees: 0, // Backend currently doesn't provide this public stat
+      capacity: data.capacity || 0,
+      speakers: [] as any[],
+      agenda: [] as any[],
+      requirements: [] as string[],
     };
+  }, [detailQuery.data]);
+
+  if (detailQuery.isLoading) {
+    return (
+      <main className="min-h-[calc(100vh-160px)] bg-slate-50 dark:bg-slate-900 py-8 sm:py-12">
+        <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-lg border border-primary/20 dark:border-slate-700 bg-white dark:bg-slate-800 p-12 text-center">
+            <p className="text-lg font-semibold text-primary dark:text-slate-100">
+              Memuat event...
+            </p>
+          </div>
+        </div>
+      </main>
+    );
   }
 
-  if (!event) {
+  if (detailQuery.isError || !event) {
     return (
       <main className="min-h-[calc(100vh-160px)] bg-slate-50 dark:bg-slate-900 py-8 sm:py-12">
         <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -187,10 +207,10 @@ export default function EventDetailPage() {
   };
 
   const stats = [
-    { label: 'Peserta', value: event.attendees, icon: '👥' },
-    { label: 'Kapasitas', value: event.capacity, icon: '📊' },
-    { label: 'Durasi', value: '3 jam', icon: '⏱️' },
-    { label: 'Harga', value: event.price === 0 ? 'Gratis' : `Rp ${event.price.toLocaleString('id-ID')}`, icon: '💳' },
+    { label: 'Peserta', value: event.attendees, icon: <Users className="w-6 h-6 text-[#2E417B] dark:text-blue-400 mx-auto" /> },
+    { label: 'Kapasitas', value: event.capacity, icon: <BarChart className="w-6 h-6 text-[#2E417B] dark:text-blue-400 mx-auto" /> },
+    { label: 'Durasi', value: '3 jam', icon: <Clock className="w-6 h-6 text-[#2E417B] dark:text-blue-400 mx-auto" /> },
+    { label: 'Harga', value: event.price === 0 ? 'Gratis' : `Rp ${event.price.toLocaleString('id-ID')}`, icon: <CreditCard className="w-6 h-6 text-[#2E417B] dark:text-blue-400 mx-auto" /> },
   ];
 
   return (
@@ -226,8 +246,6 @@ export default function EventDetailPage() {
               </h1>
             </div>
           </div>
-
-          <p className="text-base text-primary/70 dark:text-slate-400">{event.description}</p>
         </div>
 
         {/* Stats */}
@@ -244,9 +262,10 @@ export default function EventDetailPage() {
               <h2 className="text-xl font-bold text-primary dark:text-slate-100 mb-4">
                 Tentang Event
               </h2>
-              <p className="text-primary/70 dark:text-slate-400 leading-relaxed">
-                {event.fullDescription}
-              </p>
+              <div 
+                className="text-primary/70 dark:text-slate-400 leading-relaxed prose dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{ __html: event.fullDescription }}
+              />
 
               {/* Event Details Grid */}
               <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-primary/10 dark:border-slate-700">
@@ -258,9 +277,20 @@ export default function EventDetailPage() {
                   <p className="text-sm font-medium text-primary/60 dark:text-slate-400">Waktu</p>
                   <p className="text-base font-semibold text-primary dark:text-slate-100">{event.time}</p>
                 </div>
-                <div>
+                <div className="col-span-2 sm:col-span-1">
                   <p className="text-sm font-medium text-primary/60 dark:text-slate-400">Lokasi</p>
-                  <p className="text-base font-semibold text-primary dark:text-slate-100">{event.location}</p>
+                  {event.location.startsWith('http') ? (
+                    <a 
+                      href={event.location} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-base font-semibold text-[#2E417B] dark:text-blue-400 hover:underline break-all"
+                    >
+                      {event.location}
+                    </a>
+                  ) : (
+                    <p className="text-base font-semibold text-primary dark:text-slate-100">{event.location}</p>
+                  )}
                 </div>
               </div>
             </section>
