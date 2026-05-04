@@ -6,49 +6,24 @@
 'use client';
 
 import { useAuth } from '@/features/auth/auth-context';
-import { ProfileHeader, ProfileInfoCard, ProfileActionsCard } from '@/features/profile/components';
+import { ProfileHeader, ProfileActionsCard, EditProfileModal, ChangePasswordModal } from '@/features/profile/components';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
 
 export default function ProfilePage() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   // Redirect to login if not authenticated
-  if (!isAuthenticated && !isLoading) {
-    router.push('/login');
-    return null;
-  }
-
-  const handleAvatarUpload = async (file: File) => {
-    try {
-      // TODO: Call API to upload avatar
-      // For now, this is a placeholder
-      const formData = new FormData();
-      formData.append('avatar', file);
-
-      // Example API call (uncomment when backend is ready):
-      // const response = await fetch('/api/profile/avatar', {
-      //   method: 'POST',
-      //   body: formData,
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`,
-      //   },
-      // });
-      // if (!response.ok) throw new Error('Upload failed');
-      // const data = await response.json();
-      // Update user data with new avatar URL if available
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log('Avatar uploaded:', file.name);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Upload failed';
-      toast.error(message);
-      throw error;
+  useEffect(() => {
+    if (!isAuthenticated && !isLoading) {
+      router.push('/login');
     }
-  };
+  }, [isAuthenticated, isLoading, router]);
 
   // Show loading state
   if (isLoading || !user) {
@@ -80,24 +55,28 @@ export default function ProfilePage() {
         {/* Main Content */}
         <div className="space-y-6">
           {/* Profile Header */}
-          <ProfileHeader user={user} onAvatarUpload={handleAvatarUpload} />
+          <ProfileHeader user={user} />
 
-          {/* Profile Info */}
-          <ProfileInfoCard user={user} />
+
 
           {/* Quick Actions */}
           <ProfileActionsCard
-            onEditClick={() => {
-              // TODO: Open edit modal
-              toast.info('Edit profile feature coming soon!');
-            }}
-            onChangePasswordClick={() => {
-              // TODO: Open change password modal
-              toast.info('Change password feature coming soon!');
-            }}
+            onEditClick={() => setIsEditModalOpen(true)}
+            onChangePasswordClick={() => setIsPasswordModalOpen(true)}
           />
         </div>
       </div>
+
+      {/* Modals */}
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        currentName={user.name}
+      />
+      <ChangePasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+      />
     </main>
   );
 }

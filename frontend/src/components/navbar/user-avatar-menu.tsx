@@ -69,11 +69,19 @@ export function UserAvatarMenu({ className }: UserAvatarMenuProps) {
       {/* Avatar Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-[#2E417B] text-white dark:bg-blue-600 hover:opacity-90 transition-opacity font-medium text-xs sm:text-sm"
+        className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-[#2E417B] text-white dark:bg-blue-600 hover:opacity-90 transition-opacity font-medium text-xs sm:text-sm overflow-hidden"
         title={user.name || user.email}
         disabled={isLoading}
       >
-        {initials}
+        {user.profilePhotoUrl ? (
+          <img
+            src={user.profilePhotoUrl}
+            alt={user.name || 'Avatar'}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          initials
+        )}
       </button>
 
       {/* Dropdown Menu */}

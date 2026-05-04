@@ -16,6 +16,7 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   logout: () => Promise<void>;
   setToken: (token: string) => void;
+  refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -79,6 +80,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const refreshUser = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+  };
+
   const value = useMemo(
     () => ({
       user: meQuery.data ?? null,
@@ -87,6 +92,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isAuthenticated: Boolean(token && meQuery.data),
       logout,
       setToken,
+      refreshUser,
     }),
     [meQuery.data, meQuery.isFetching, token],
   );
