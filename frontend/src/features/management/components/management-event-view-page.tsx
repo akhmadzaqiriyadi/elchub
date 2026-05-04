@@ -33,12 +33,20 @@ export function ManagementEventViewPage({ eventId }: { eventId: string }) {
             Detail informasi event.
           </p>
         </div>
-        <Link
-          href="/management/events"
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-200"
-        >
-          Back to Events
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/management/events/${eventId}/registrations`}
+            className="rounded-lg bg-[#2E417B] px-3 py-2 text-sm font-medium text-white hover:bg-[#23306a] dark:bg-blue-600 dark:hover:bg-blue-700"
+          >
+            Verifikasi Pendaftar
+          </Link>
+          <Link
+            href="/management/events"
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+          >
+            Back to Events
+          </Link>
+        </div>
       </div>
 
       {isLoading && <p className="text-sm text-slate-500">Loading...</p>}

@@ -68,6 +68,7 @@ export type EventDetailPayload = {
     level: { id: string; name: string; slug: string } | null;
     status: { code: string; name: string };
     organizer: { id: string; name: string | null; email: string };
+    attendees?: number;
     createdAt: string;
     updatedAt: string;
   };
@@ -76,5 +77,41 @@ export type EventDetailPayload = {
 export function getEventDetail(slug: string) {
   return apiRequest<EventDetailPayload>(`/events/${slug}`, {
     method: 'GET',
+  });
+}
+
+// ============================================================================
+// My Events API
+// ============================================================================
+
+export type MyEventItem = {
+  registrationId: string;
+  status: string;
+  paymentStatus: string;
+  registeredAt: string;
+  event: {
+    id: string;
+    title: string;
+    slug: string;
+    image: string | null;
+    startAt: string | null;
+    endAt: string | null;
+    isFree: boolean;
+    price: number | null;
+    meetLink: string | null;
+    mode: { name: string; slug: string };
+    type: { name: string; slug: string };
+  };
+};
+
+export type MyEventsPayload = {
+  success: boolean;
+  data: MyEventItem[];
+};
+
+export function getMyEvents(token: string) {
+  return apiRequest<MyEventsPayload>('/events/my-events', {
+    method: 'GET',
+    token,
   });
 }

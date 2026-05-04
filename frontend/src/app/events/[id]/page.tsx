@@ -126,7 +126,7 @@ export default function EventDetailPage() {
       price: data.price || 0,
       isFree: data.isFree,
       formSchema: data.formSchema,
-      attendees: 0, // Backend currently doesn't provide this public stat
+      attendees: data.attendees ?? 0,
       capacity: data.capacity || 0,
       speakers: [] as any[],
       agenda: [] as any[],

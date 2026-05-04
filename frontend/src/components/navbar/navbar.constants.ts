@@ -33,6 +33,10 @@ export const DASHBOARD_MENU_ITEMS: NavItem[] = [
     href: '/dashboard/courses',
   },
   {
+    label: 'My Events',
+    href: '/my-events',
+  },
+  {
     label: 'My Mentorship',
     href: '/dashboard/mentorship',
   },

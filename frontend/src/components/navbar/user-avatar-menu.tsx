@@ -104,6 +104,13 @@ export function UserAvatarMenu({ className }: UserAvatarMenuProps) {
               </Link>
             )}
             <Link
+              href="/my-events"
+              className="block px-4 py-2 text-sm text-primary dark:text-slate-300 hover:bg-primary/5 dark:hover:bg-slate-700 transition-colors"
+              onClick={() => setIsOpen(false)}
+            >
+              My Events
+            </Link>
+            <Link
               href="/profile"
               className="block px-4 py-2 text-sm text-primary dark:text-slate-300 hover:bg-primary/5 dark:hover:bg-slate-700 transition-colors"
               onClick={() => setIsOpen(false)}

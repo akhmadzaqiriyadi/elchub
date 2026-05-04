@@ -18,6 +18,10 @@ import type {
   CreateUserInput,
   UpdateUserInput,
   UserMutationPayload,
+  ManagementRegistrationListParams,
+  ManagementRegistrationListPayload,
+  ManagementRegistrationUpdateInput,
+  ManagementRegistrationMutationPayload,
 } from './types';
 
 function toQueryString(params: EventListParams) {
@@ -196,6 +200,36 @@ export function updateManagementUser(userId: string, input: UpdateUserInput, tok
 export function deleteManagementUser(userId: string, token: string) {
   return apiRequest<UserMutationPayload>(`/management/users/${userId}`, {
     method: 'DELETE',
+    token,
+  });
+}
+
+// ============================================================================
+// Event Registrations API
+// ============================================================================
+
+function toRegistrationListQueryString(params: ManagementRegistrationListParams) {
+  const searchParams = new URLSearchParams();
+
+  if (params.q) searchParams.set('q', params.q);
+  if (params.page) searchParams.set('page', String(params.page));
+  if (params.limit) searchParams.set('limit', String(params.limit));
+
+  const built = searchParams.toString();
+  return built ? `?${built}` : '';
+}
+
+export function getManagementEventRegistrations(eventId: string, params: ManagementRegistrationListParams) {
+  return apiRequest<ManagementRegistrationListPayload>(`/management/events/${eventId}/registrations${toRegistrationListQueryString(params)}`, {
+    method: 'GET',
+    token: params.token,
+  });
+}
+
+export function updateManagementEventRegistration(eventId: string, registrationId: string, input: ManagementRegistrationUpdateInput, token: string) {
+  return apiRequest<ManagementRegistrationMutationPayload>(`/management/events/${eventId}/registrations/${registrationId}`, {
+    method: 'PATCH',
+    body: input,
     token,
   });
 }

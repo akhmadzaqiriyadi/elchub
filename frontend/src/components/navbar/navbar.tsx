@@ -28,7 +28,7 @@ export function Navbar({ className }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Determine current page location
-  const isDashboard = pathname.startsWith('/dashboard');
+  const isDashboard = pathname.startsWith('/dashboard') || pathname.startsWith('/my-events');
   const isManagementPath = pathname.startsWith('/management');
   
   const isManagementRole = Boolean(isAuthenticated && user?.role && managementRoles.has(user.role));

@@ -238,3 +238,44 @@ export type UserMutationPayload = {
   message?: string;
   data?: UserListItem;
 };
+
+// ============================================================================
+// Event Registrations Management Types
+// ============================================================================
+
+export type ManagementRegistrationItem = {
+  id: string;
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
+  status: string;
+  statusCode: string;
+  paymentStatus: string;
+  paymentProofUrl: string | null;
+  customAnswers: Record<string, any> | null;
+  createdAt: string;
+};
+
+export type ManagementRegistrationListPayload = {
+  success: true;
+  data: ManagementRegistrationItem[];
+};
+
+export type ManagementRegistrationListParams = {
+  token: string;
+  q?: string;
+  page?: number;
+  limit?: number;
+};
+
+export type ManagementRegistrationUpdateInput = {
+  statusCode?: string;
+  paymentStatus?: string;
+};
+
+export type ManagementRegistrationMutationPayload = {
+  success: boolean;
+  message?: string;
+};
