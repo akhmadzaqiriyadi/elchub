@@ -12,6 +12,7 @@ import { authLoginSchema, authRegisterSchema, forgotPasswordSchema, resetPasswor
 export type PublicUser = {
   id: string;
   name: string | null;
+  profilePhotoUrl: string | null;
   email: string;
   role: string;
   createdAt: string;
@@ -21,6 +22,7 @@ export type PublicUser = {
 function toPublicUser(user: {
   id: string;
   name: string | null;
+  profilePhotoUrl: string | null;
   email: string;
   role: string;
   createdAt: Date;
@@ -29,6 +31,7 @@ function toPublicUser(user: {
   return {
     id: user.id,
     name: user.name,
+    profilePhotoUrl: user.profilePhotoUrl,
     email: user.email,
     role: user.role,
     createdAt: user.createdAt.toISOString(),
@@ -183,6 +186,150 @@ export async function getAuthenticatedUser(headers: Record<string, string | unde
         user: toPublicUser(sessionResult.user),
         appUrl: env.APP_URL,
       },
+    },
+  };
+}
+
+function normalizeName(value?: string | null) {
+  if (value === undefined) return undefined;
+  const trimmed = value?.trim() ?? '';
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+export async function updateAuthenticatedUserProfile(
+  headers: Record<string, string | undefined>,
+  input: { name?: string | null },
+) {
+  const sessionResult = await requireAuth(headers);
+
+  if (!sessionResult.ok) {
+    return {
+      status: sessionResult.status,
+      body: sessionResult.body,
+    };
+  }
+
+  const name = normalizeName(input.name);
+
+  const user = await prisma.user.update({
+    where: { id: sessionResult.user.id },
+    data: {
+      ...(name !== undefined ? { name } : {}),
+    },
+  });
+
+  return {
+    status: 200,
+    body: {
+      success: true,
+      data: {
+        user: toPublicUser(user),
+      },
+    },
+  };
+}
+
+export async function updateAuthenticatedUserProfilePhoto(
+  headers: Record<string, string | undefined>,
+  profilePhotoUrl: string,
+) {
+  const sessionResult = await requireAuth(headers);
+
+  if (!sessionResult.ok) {
+    return {
+      status: sessionResult.status,
+      body: sessionResult.body,
+    };
+  }
+
+  const user = await prisma.user.update({
+    where: { id: sessionResult.user.id },
+    data: { profilePhotoUrl },
+  });
+
+  return {
+    status: 200,
+    body: {
+      success: true,
+      data: {
+        user: toPublicUser(user),
+      },
+    },
+  };
+}
+
+export async function changeAuthenticatedUserPassword(
+  headers: Record<string, string | undefined>,
+  input: { currentPassword: string; newPassword: string },
+) {
+  const sessionResult = await requireAuth(headers);
+
+  if (!sessionResult.ok) {
+    return {
+      status: sessionResult.status,
+      body: sessionResult.body,
+    };
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: sessionResult.user.id },
+    select: { id: true, passwordHash: true },
+  });
+
+  if (!user) {
+    return {
+      status: 404,
+      body: {
+        success: false,
+        message: 'User not found',
+      },
+    };
+  }
+
+  const passwordMatched = await comparePassword(input.currentPassword, user.passwordHash);
+
+  if (!passwordMatched) {
+    return {
+      status: 400,
+      body: {
+        success: false,
+        message: 'Current password is incorrect',
+      },
+    };
+  }
+
+  if (input.currentPassword === input.newPassword) {
+    return {
+      status: 400,
+      body: {
+        success: false,
+        message: 'New password must be different from current password',
+      },
+    };
+  }
+
+  const newPasswordHash = await hashPassword(input.newPassword);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash: newPasswordHash },
+    }),
+    prisma.session.updateMany({
+      where: {
+        userId: user.id,
+        revokedAt: null,
+        NOT: { refreshTokenHash: sessionResult.tokenHash },
+      },
+      data: { revokedAt: new Date() },
+    }),
+  ]);
+
+  return {
+    status: 200,
+    body: {
+      success: true,
+      message: 'Password changed successfully',
     },
   };
 }

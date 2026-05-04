@@ -360,15 +360,34 @@ const registerEventSuccessSchema = t.Object({
 
 const myEventsSuccessSchema = t.Object({
   success: t.Literal(true),
-  data: t.Array(
-    t.Object({
-      registrationId: t.String(),
-      status: t.String(),
-      paymentStatus: t.String(),
-      registeredAt: t.String({ format: 'date-time' }),
-      event: managementEventSuccessSchema.properties.data,
-    })
-  ),
+  data: t.Object({
+    items: t.Array(
+      t.Object({
+        registrationId: t.String(),
+        status: t.String(),
+        statusCode: t.String(),
+        paymentStatus: t.String(),
+        registeredAt: t.String({ format: 'date-time' }),
+        event: managementEventSuccessSchema.properties.data,
+      })
+    ),
+    pagination: t.Object({
+      page: t.Number(),
+      limit: t.Number(),
+      total: t.Number(),
+      totalPages: t.Number(),
+    }),
+  }),
+});
+
+const myEventsQuerySchema = t.Object({
+  q: t.Optional(t.String()),
+  statusCode: t.Optional(t.String()),
+  paymentStatus: t.Optional(t.String()),
+  typeSlug: t.Optional(t.String()),
+  modeSlug: t.Optional(t.String()),
+  page: t.Optional(t.Numeric()),
+  limit: t.Optional(t.Numeric()),
 });
 
 const eventRegistrationsSuccessSchema = t.Object({
@@ -664,7 +683,7 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
   )
   .get(
     '/api/events/my-events',
-    async ({ headers, set }) => {
+    async ({ headers, query, set }) => {
       const authResult = await requireAuth(headers as Record<string, string | undefined>);
 
       if (!authResult.ok) {
@@ -676,6 +695,14 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
         const data = await getMyEvents({
           userId: authResult.user.id,
           role: authResult.user.role,
+        }, {
+          q: query.q,
+          statusCode: query.statusCode,
+          paymentStatus: query.paymentStatus,
+          typeSlug: query.typeSlug,
+          modeSlug: query.modeSlug,
+          page: query.page,
+          limit: query.limit,
         });
 
         return {
@@ -691,6 +718,7 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
       }
     },
     {
+      query: myEventsQuerySchema,
       response: {
         200: myEventsSuccessSchema,
         401: authErrorSchema,

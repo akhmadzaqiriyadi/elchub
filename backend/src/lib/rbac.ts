@@ -21,6 +21,7 @@ type AuthSuccess = {
     email: string;
     role: UserRole;
     name: string | null;
+    profilePhotoUrl: string | null;
     createdAt: Date;
     updatedAt: Date;
   };
@@ -126,6 +127,7 @@ export async function requireAuth(headers: Record<string, string | undefined>): 
       email: true,
       role: true,
       name: true,
+      profilePhotoUrl: true,
       createdAt: true,
       updatedAt: true,
     },

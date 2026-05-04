@@ -79,23 +79,41 @@ Endpoint ini digunakan oleh user untuk melihat semua event yang sudah dia daftar
 - **URL:** `GET /api/events/my-events`
 - **Authentication:** Wajib (Semua role)
 
+### Query Parameters (Opsional)
+- `q`: search judul/deskripsi/tipe/mode event
+- `statusCode`: filter status registrasi (`REGISTERED`, `REJECTED`, `CANCELLED`, dll)
+- `paymentStatus`: filter status pembayaran (`FREE`, `WAITING_VERIFICATION`, `PAID`, `REJECTED`, dll)
+- `typeSlug`: filter tipe event berdasarkan slug
+- `modeSlug`: filter mode event berdasarkan slug
+- `page`: nomor halaman (default: `1`)
+- `limit`: jumlah data per halaman (default: `10`, max: `50`)
+
 ### Contoh Response
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "registrationId": "cmoq...",
-      "status": "Registered",
-      "paymentStatus": "WAITING_VERIFICATION",
-      "registeredAt": "2026-05-04T09:00:00.000Z",
-      "event": {
-        "id": "event-id-123",
-        "title": "Backend Workshop",
-        ...
+  "data": {
+    "items": [
+      {
+        "registrationId": "cmoq...",
+        "status": "Registered",
+        "statusCode": "REGISTERED",
+        "paymentStatus": "WAITING_VERIFICATION",
+        "registeredAt": "2026-05-04T09:00:00.000Z",
+        "event": {
+          "id": "event-id-123",
+          "title": "Backend Workshop",
+          "...": "..."
+        }
       }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 1,
+      "totalPages": 1
     }
-  ]
+  }
 }
 ```
 

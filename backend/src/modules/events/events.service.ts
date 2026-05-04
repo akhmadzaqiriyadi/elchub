@@ -56,6 +56,16 @@ export type ListMasterDataQuery = {
   limit?: number;
 };
 
+export type ListMyEventsQuery = {
+  q?: string;
+  statusCode?: string;
+  paymentStatus?: string;
+  typeSlug?: string;
+  modeSlug?: string;
+  page?: number;
+  limit?: number;
+};
+
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const codePattern = /^[A-Z]+(?:_[A-Z0-9]+)*$/;
 
@@ -1040,32 +1050,79 @@ export async function registerForEvent(actor: AuthActor, eventId: string, payloa
   };
 }
 
-export async function getMyEvents(actor: AuthActor) {
-  const registrations = await prisma.eventRegistration.findMany({
-    where: { userId: actor.userId },
-    include: {
-      event: {
-        include: {
-          type: { select: { name: true, slug: true } },
-          mode: { select: { name: true, slug: true } },
-          level: { select: { id: true, name: true, slug: true } },
-          status: { select: { code: true, name: true } },
-          organizer: { select: { id: true, name: true, email: true } },
-          _count: { select: { registrations: { where: { status: { code: 'REGISTERED' } } } } },
-        }
-      },
-      status: true,
-    },
-    orderBy: { createdAt: 'desc' }
-  });
+export async function getMyEvents(actor: AuthActor, input: ListMyEventsQuery = {}) {
+  const search = normalizeSearchTerm(input.q);
+  const pagination = normalizePagination({ page: input.page, limit: input.limit });
+  const statusCode = normalizeCode(input.statusCode);
+  const paymentStatus = normalizeCode(input.paymentStatus);
+  const typeSlug = normalizeSlug(input.typeSlug);
+  const modeSlug = normalizeSlug(input.modeSlug);
 
-  return registrations.map(reg => ({
-    registrationId: reg.id,
-    status: reg.status.name,
-    paymentStatus: reg.paymentStatus,
-    registeredAt: reg.createdAt.toISOString(),
-    event: mapEventItem(reg.event)
-  }));
+  const andFilters: Array<Record<string, unknown>> = [];
+
+  if (typeSlug) {
+    andFilters.push({ event: { type: { slug: typeSlug } } });
+  }
+
+  if (modeSlug) {
+    andFilters.push({ event: { mode: { slug: modeSlug } } });
+  }
+
+  const where = {
+    userId: actor.userId,
+    ...(statusCode ? { status: { code: statusCode } } : {}),
+    ...(paymentStatus ? { paymentStatus } : {}),
+    ...(andFilters.length > 0 ? { AND: andFilters } : {}),
+    ...(search
+      ? {
+          OR: [
+            { event: { title: { contains: search, mode: 'insensitive' as const } } },
+            { event: { description: { contains: search, mode: 'insensitive' as const } } },
+            { event: { type: { name: { contains: search, mode: 'insensitive' as const } } } },
+            { event: { mode: { name: { contains: search, mode: 'insensitive' as const } } } },
+          ],
+        }
+      : {}),
+  };
+
+  const [registrations, total] = await prisma.$transaction([
+    prisma.eventRegistration.findMany({
+      where,
+      include: {
+        event: {
+          include: {
+            type: { select: { name: true, slug: true } },
+            mode: { select: { name: true, slug: true } },
+            level: { select: { id: true, name: true, slug: true } },
+            status: { select: { code: true, name: true } },
+            organizer: { select: { id: true, name: true, email: true } },
+            _count: { select: { registrations: { where: { status: { code: 'REGISTERED' } } } } },
+          }
+        },
+        status: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      skip: pagination.skip,
+      take: pagination.limit,
+    }),
+    prisma.eventRegistration.count({ where }),
+  ]);
+
+  return {
+    items: registrations.map((reg) => ({
+      registrationId: reg.id,
+      status: reg.status.name,
+      statusCode: reg.status.code,
+      paymentStatus: reg.paymentStatus,
+      registeredAt: reg.createdAt.toISOString(),
+      event: mapEventItem(reg.event),
+    })),
+    pagination: buildPaginationMeta({
+      page: pagination.page,
+      limit: pagination.limit,
+      total,
+    }),
+  };
 }
 
 export async function getEventRegistrations(actor: AuthActor, eventId: string) {

@@ -16,6 +16,8 @@ type AuthSuccessResponse = {
 
 describe('pre-integration users management api', () => {
   let adminToken: string;
+  let userToken: string;
+  let profileUserEmail: string;
 
   beforeAll(async () => {
     // Login as admin to get the token for management endpoints
@@ -38,6 +40,123 @@ describe('pre-integration users management api', () => {
 
     const payload = (await loginResponse.json()) as AuthSuccessResponse;
     adminToken = payload.data.accessToken;
+
+    const uniqueEmail = `profile_user_${Date.now()}@elchub.local`;
+    profileUserEmail = uniqueEmail;
+    const registerResponse = await app.handle(
+      new Request('http://localhost/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: 'Profile Owner',
+          email: uniqueEmail,
+          password: 'Profile123!',
+        }),
+      }),
+    );
+
+    if (registerResponse.status !== 201) {
+      throw new Error('Failed to register normal user for profile tests');
+    }
+
+    const registerPayload = (await registerResponse.json()) as AuthSuccessResponse;
+    userToken = registerPayload.data.accessToken;
+  });
+
+  test('PATCH /api/users/me should update current user profile', async () => {
+    const response = await app.handle(
+      new Request('http://localhost/api/users/me', {
+        method: 'PATCH',
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({
+          name: 'Updated Profile Name',
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+
+    const payload = (await response.json()) as any;
+    expect(payload.success).toBe(true);
+    expect(payload.data.user.name).toBe('Updated Profile Name');
+  });
+
+  test('POST /api/users/me/profile-photo should return 400 for non-image file', async () => {
+    const formData = new FormData();
+    formData.append('file', new File(['not-image'], 'notes.txt', { type: 'text/plain' }));
+
+    const response = await app.handle(
+      new Request('http://localhost/api/users/me/profile-photo', {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${userToken}`,
+        },
+        body: formData,
+      }),
+    );
+
+    expect(response.status).toBe(400);
+
+    const payload = (await response.json()) as any;
+    expect(payload.success).toBe(false);
+    expect(payload.message).toContain('Only image files are allowed');
+  });
+
+  test('PATCH /api/users/me/change-password should change current user password', async () => {
+    const response = await app.handle(
+      new Request('http://localhost/api/users/me/change-password', {
+        method: 'PATCH',
+        headers: {
+          'content-type': 'application/json',
+          authorization: `Bearer ${userToken}`,
+        },
+        body: JSON.stringify({
+          currentPassword: 'Profile123!',
+          newPassword: 'Profile123!@2',
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const payload = (await response.json()) as any;
+    expect(payload.success).toBe(true);
+
+    const oldLoginResponse = await app.handle(
+      new Request('http://localhost/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: profileUserEmail,
+          password: 'Profile123!',
+        }),
+      }),
+    );
+
+    expect(oldLoginResponse.status).toBe(401);
+  });
+
+  test('PATCH /api/users/me/change-password should allow login using new password', async () => {
+    const loginResponse = await app.handle(
+      new Request('http://localhost/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: profileUserEmail,
+          password: 'Profile123!@2',
+        }),
+      }),
+    );
+
+    expect(loginResponse.status).toBe(200);
   });
 
   test('GET /api/management/users should list users', async () => {

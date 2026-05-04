@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
+
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface DateRangePickerProps {
@@ -14,40 +16,96 @@ interface DateRangePickerProps {
   className?: string;
 }
 
-export function DateRangePicker({ value, onChange, placeholder = 'Select date range', className }: DateRangePickerProps) {
+function formatDate(value?: Date) {
+  return value ? format(value, 'dd MMM yyyy') : 'Select date';
+}
+
+export function DateRangePicker({ value, onChange, placeholder = 'Date range', className }: DateRangePickerProps) {
   const [from, setFrom] = useState<Date | undefined>(value?.from);
   const [to, setTo] = useState<Date | undefined>(value?.to);
 
   useEffect(() => {
     setFrom(value?.from);
     setTo(value?.to);
-  }, [value]);
+  }, [value?.from, value?.to]);
 
-  useEffect(() => {
-    onChange?.({ from, to });
+  const previewLabel = useMemo(() => {
+    if (from && to) {
+      return `${formatDate(from)} - ${formatDate(to)}`;
+    }
+
+    if (from) {
+      return `${formatDate(from)} - End date`;
+    }
+
+    if (to) {
+      return `Start date - ${formatDate(to)}`;
+    }
+
+    return 'No range selected';
   }, [from, to]);
 
+  const handleFromChange = (nextValue: string) => {
+    const nextFrom = nextValue ? new Date(`${nextValue}T00:00:00`) : undefined;
+    setFrom(nextFrom);
+    onChange?.({ from: nextFrom, to });
+  };
+
+  const handleToChange = (nextValue: string) => {
+    const nextTo = nextValue ? new Date(`${nextValue}T00:00:00`) : undefined;
+    setTo(nextTo);
+    onChange?.({ from, to: nextTo });
+  };
+
+  const handleClear = () => {
+    setFrom(undefined);
+    setTo(undefined);
+    onChange?.({ from: undefined, to: undefined });
+  };
+
   return (
-    <div className={cn('flex w-full min-w-0 items-center gap-2', className)}>
-      <input
-        aria-label="From date"
-        type="date"
-        value={from ? format(from, 'yyyy-MM-dd') : ''}
-        onChange={(e) => setFrom(e.target.value ? new Date(`${e.target.value}T00:00:00`) : undefined)}
-        placeholder="From"
-        className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-      />
+    <div
+      className={cn(
+        'rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-4 shadow-sm dark:border-slate-700 dark:from-slate-900 dark:to-slate-900',
+        className,
+      )}
+    >
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{placeholder}</p>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{previewLabel}</p>
+        </div>
 
-      <span className="text-slate-400">—</span>
+        <Button variant="secondary" size="default" onClick={handleClear} className="h-9 px-3 text-xs">
+          Clear
+        </Button>
+      </div>
 
-      <input
-        aria-label="To date"
-        type="date"
-        value={to ? format(to, 'yyyy-MM-dd') : ''}
-        onChange={(e) => setTo(e.target.value ? new Date(`${e.target.value}T00:00:00`) : undefined)}
-        placeholder="To"
-        className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-      />
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
+        <label className="grid gap-1">
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">From</span>
+          <input
+            aria-label="From date"
+            type="date"
+            value={from ? format(from, 'yyyy-MM-dd') : ''}
+            onChange={(e) => handleFromChange(e.target.value)}
+            className="h-11 min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-[#2E417B] focus:ring-2 focus:ring-[#2E417B]/15 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-slate-500 dark:focus:ring-slate-700/40"
+          />
+        </label>
+
+        <div className="hidden items-center justify-center text-slate-400 sm:flex">to</div>
+
+        <label className="grid gap-1">
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">To</span>
+          <input
+            aria-label="To date"
+            type="date"
+            value={to ? format(to, 'yyyy-MM-dd') : ''}
+            onChange={(e) => handleToChange(e.target.value)}
+            className="h-11 min-w-0 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-[#2E417B] focus:ring-2 focus:ring-[#2E417B]/15 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-slate-500 dark:focus:ring-slate-700/40"
+          />
+        </label>
+      </div>
     </div>
   );
 }

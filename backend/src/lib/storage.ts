@@ -119,3 +119,21 @@ export async function uploadPaymentProof(file: File) {
     imageUrl: buildPublicObjectUrl(objectName),
   };
 }
+
+export async function uploadProfilePhoto(file: File) {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Only image files are allowed for profile photo');
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const objectName = `users/profile-photos/${crypto.randomUUID()}${getFileExtension(file)}`;
+
+  await getMinioClient().putObject(env.MINIO_BUCKET, objectName, buffer, buffer.length, {
+    'Content-Type': file.type,
+  });
+
+  return {
+    objectName,
+    imageUrl: buildPublicObjectUrl(objectName),
+  };
+}

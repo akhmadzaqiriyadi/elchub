@@ -89,6 +89,7 @@ export function getEventDetail(slug: string, token?: string) {
 export type MyEventItem = {
   registrationId: string;
   status: string;
+  statusCode: string;
   paymentStatus: string;
   registeredAt: string;
   event: {
@@ -106,13 +107,43 @@ export type MyEventItem = {
   };
 };
 
-export type MyEventsPayload = {
-  success: boolean;
-  data: MyEventItem[];
+export type MyEventsQuery = {
+  q?: string;
+  statusCode?: string;
+  paymentStatus?: string;
+  typeSlug?: string;
+  modeSlug?: string;
+  page?: number;
+  limit?: number;
 };
 
-export function getMyEvents(token: string) {
-  return apiRequest<MyEventsPayload>('/events/my-events', {
+export type MyEventsPayload = {
+  success: boolean;
+  data: {
+    items: MyEventItem[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+};
+
+export function getMyEvents(token: string, query: MyEventsQuery = {}) {
+  const params = new URLSearchParams();
+
+  if (query.q) params.set('q', query.q);
+  if (query.statusCode) params.set('statusCode', query.statusCode);
+  if (query.paymentStatus) params.set('paymentStatus', query.paymentStatus);
+  if (query.typeSlug) params.set('typeSlug', query.typeSlug);
+  if (query.modeSlug) params.set('modeSlug', query.modeSlug);
+  if (typeof query.page === 'number') params.set('page', String(query.page));
+  if (typeof query.limit === 'number') params.set('limit', String(query.limit));
+
+  const path = params.size > 0 ? `/events/my-events?${params.toString()}` : '/events/my-events';
+
+  return apiRequest<MyEventsPayload>(path, {
     method: 'GET',
     token,
   });
