@@ -104,3 +104,64 @@ describe('pre-integration events list api (sorting & filtering)', () => {
     expect(Array.isArray(data.data.items)).toBe(true);
   });
 });
+
+describe('pre-integration public events list api', () => {
+  test('GET /api/events should list events', async () => {
+    const response = await app.handle(
+      new Request('http://localhost/api/events', {
+        method: 'GET',
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const data = await response.json() as any;
+    expect(data.success).toBe(true);
+    expect(Array.isArray(data.data.items)).toBe(true);
+  });
+
+  test('GET /api/events should filter by isFree', async () => {
+    const response = await app.handle(
+      new Request('http://localhost/api/events?isFree=true', {
+        method: 'GET',
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const data = await response.json() as any;
+    expect(data.success).toBe(true);
+    if (data.data.items.length > 0) {
+      expect(data.data.items[0].isFree).toBe(true);
+    }
+  });
+
+  test('GET /api/events should filter by price range', async () => {
+    const response = await app.handle(
+      new Request('http://localhost/api/events?minPrice=10000&maxPrice=100000', {
+        method: 'GET',
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const data = await response.json() as any;
+    expect(data.success).toBe(true);
+    if (data.data.items.length > 0) {
+      expect(data.data.items[0].price).toBeGreaterThanOrEqual(10000);
+      expect(data.data.items[0].price).toBeLessThanOrEqual(100000);
+    }
+  });
+
+  test('GET /api/events should filter by levelSlug', async () => {
+    const response = await app.handle(
+      new Request('http://localhost/api/events?levelSlug=beginner', {
+        method: 'GET',
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    const data = await response.json() as any;
+    expect(data.success).toBe(true);
+    if (data.data.items.length > 0 && data.data.items[0].level) {
+      expect(data.data.items[0].level.slug).toBe('beginner');
+    }
+  });
+});

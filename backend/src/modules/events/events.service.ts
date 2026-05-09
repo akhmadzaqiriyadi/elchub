@@ -5,8 +5,12 @@ export type ListEventsQuery = {
   q?: string;
   typeSlug?: string;
   modeSlug?: string;
+  levelSlug?: string;
   statusCode?: string;
   organizerId?: string;
+  isFree?: boolean;
+  minPrice?: number;
+  maxPrice?: number;
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -410,8 +414,18 @@ export async function listEvents(input: ListEventsQuery) {
       : {}),
     ...(input.typeSlug ? { type: { slug: input.typeSlug } } : {}),
     ...(input.modeSlug ? { mode: { slug: input.modeSlug } } : {}),
+    ...(input.levelSlug ? { level: { slug: input.levelSlug } } : {}),
     ...(input.statusCode ? { status: { code: input.statusCode } } : {}),
     ...(input.organizerId ? { organizerId: input.organizerId } : {}),
+    ...(input.isFree !== undefined ? { isFree: input.isFree } : {}),
+    ...(input.minPrice !== undefined || input.maxPrice !== undefined
+      ? {
+          price: {
+            ...(input.minPrice !== undefined ? { gte: input.minPrice } : {}),
+            ...(input.maxPrice !== undefined ? { lte: input.maxPrice } : {}),
+          },
+        }
+      : {}),
     ...(startGte || startLte
       ? {
           startAt: {
@@ -1210,4 +1224,262 @@ export async function updateRegistrationStatus(actor: AuthActor, eventId: string
     paymentProofUrl: updated.paymentProofUrl,
     createdAt: updated.createdAt.toISOString(),
   };
+}
+
+export type EventSectionPayload = {
+  title: string;
+  order?: number;
+  isActive?: boolean;
+};
+
+export type EventMaterialPayload = {
+  title: string;
+  type: 'ARTICLE' | 'VIDEO' | 'DOCUMENT' | 'QUIZ';
+  content?: string | null;
+  videoUrl?: string | null;
+  fileUrl?: string | null;
+  durationMin?: number | null;
+  isPreview?: boolean;
+  order?: number;
+};
+
+async function verifyEventOwnership(actor: AuthActor, eventId: string) {
+  if (actor.role === 'ADMIN') return true;
+  const event = await prisma.event.findFirst({
+    where: { id: eventId, organizerId: actor.userId },
+    select: { id: true },
+  });
+  if (!event) throw new Error('Event not found or inaccessible');
+  return true;
+}
+
+export async function createEventSection(actor: AuthActor, eventId: string, payload: EventSectionPayload) {
+  await verifyEventOwnership(actor, eventId);
+  return prisma.eventSection.create({
+    data: {
+      eventId,
+      title: payload.title,
+      order: payload.order ?? 0,
+      isActive: payload.isActive ?? true,
+    },
+  });
+}
+
+export async function updateEventSection(actor: AuthActor, eventId: string, sectionId: string, payload: EventSectionPayload) {
+  await verifyEventOwnership(actor, eventId);
+  const existing = await prisma.eventSection.findFirst({ where: { id: sectionId, eventId } });
+  if (!existing) throw new Error('Section not found');
+
+  return prisma.eventSection.update({
+    where: { id: sectionId },
+    data: {
+      title: payload.title,
+      order: payload.order,
+      isActive: payload.isActive,
+    },
+  });
+}
+
+export async function deleteEventSection(actor: AuthActor, eventId: string, sectionId: string) {
+  await verifyEventOwnership(actor, eventId);
+  const deleted = await prisma.eventSection.deleteMany({
+    where: { id: sectionId, eventId },
+  });
+  if (deleted.count === 0) throw new Error('Section not found');
+}
+
+export async function createEventMaterial(actor: AuthActor, eventId: string, sectionId: string, payload: EventMaterialPayload) {
+  await verifyEventOwnership(actor, eventId);
+  const section = await prisma.eventSection.findFirst({ where: { id: sectionId, eventId } });
+  if (!section) throw new Error('Section not found');
+
+  return prisma.eventMaterial.create({
+    data: {
+      sectionId,
+      title: payload.title,
+      type: payload.type,
+      content: payload.content,
+      videoUrl: payload.videoUrl,
+      fileUrl: payload.fileUrl,
+      durationMin: payload.durationMin,
+      isPreview: payload.isPreview ?? false,
+      order: payload.order ?? 0,
+    },
+  });
+}
+
+export async function updateEventMaterial(actor: AuthActor, eventId: string, materialId: string, payload: EventMaterialPayload) {
+  await verifyEventOwnership(actor, eventId);
+  const existing = await prisma.eventMaterial.findFirst({
+    where: { id: materialId, section: { eventId } },
+  });
+  if (!existing) throw new Error('Material not found');
+
+  return prisma.eventMaterial.update({
+    where: { id: materialId },
+    data: {
+      title: payload.title,
+      type: payload.type,
+      content: payload.content,
+      videoUrl: payload.videoUrl,
+      fileUrl: payload.fileUrl,
+      durationMin: payload.durationMin,
+      isPreview: payload.isPreview,
+      order: payload.order,
+    },
+  });
+}
+
+export async function deleteEventMaterial(actor: AuthActor, eventId: string, materialId: string) {
+  await verifyEventOwnership(actor, eventId);
+  const existing = await prisma.eventMaterial.findFirst({
+    where: { id: materialId, section: { eventId } },
+  });
+  if (!existing) throw new Error('Material not found');
+
+  await prisma.eventMaterial.delete({
+    where: { id: materialId },
+  });
+}
+
+export async function getEventSyllabus(eventId: string, userId?: string) {
+  let isAuthorized = false;
+
+  if (userId) {
+    const event = await prisma.event.findFirst({
+      where: { id: eventId, organizerId: userId },
+      select: { id: true },
+    });
+
+    if (event) {
+      isAuthorized = true;
+    } else {
+      const registration = await prisma.eventRegistration.findUnique({
+        where: { eventId_userId: { eventId, userId } },
+        select: { status: { select: { code: true } }, paymentStatus: true },
+      });
+
+      if (registration && registration.status.code === 'REGISTERED' && (registration.paymentStatus === 'PAID' || registration.paymentStatus === 'FREE')) {
+        isAuthorized = true;
+      }
+    }
+  }
+
+  const sections = await prisma.eventSection.findMany({
+    where: { eventId, isActive: true },
+    orderBy: { order: 'asc' },
+    include: {
+      materials: {
+        orderBy: { order: 'asc' },
+      },
+    },
+  });
+
+  const progressMap = new Map<string, any>();
+  if (userId) {
+    const userProgress = await prisma.materialProgress.findMany({
+      where: { userId, material: { section: { eventId } } },
+    });
+    for (const p of userProgress) {
+      progressMap.set(p.materialId, { isCompleted: p.isCompleted, completedAt: p.completedAt });
+    }
+  }
+
+  return sections.map((sec) => ({
+    id: sec.id,
+    title: sec.title,
+    order: sec.order,
+    materials: sec.materials.map((mat) => {
+      const masked = !isAuthorized && !mat.isPreview;
+      return {
+        id: mat.id,
+        title: mat.title,
+        type: mat.type,
+        durationMin: mat.durationMin,
+        isPreview: mat.isPreview,
+        order: mat.order,
+        content: masked ? null : mat.content,
+        videoUrl: masked ? null : mat.videoUrl,
+        fileUrl: masked ? null : mat.fileUrl,
+        userProgress: progressMap.get(mat.id) || null,
+      };
+    }),
+  }));
+}
+
+export async function markMaterialAsCompleted(actor: AuthActor, materialId: string) {
+  const material = await prisma.eventMaterial.findUnique({
+    where: { id: materialId },
+    include: { section: true }
+  });
+
+  if (!material) throw new Error('Material not found');
+
+  if (actor.role !== 'ADMIN') {
+    const event = await prisma.event.findFirst({
+      where: { id: material.section.eventId, organizerId: actor.userId },
+      select: { id: true },
+    });
+    
+    if (!event) {
+      const registration = await prisma.eventRegistration.findUnique({
+        where: { eventId_userId: { eventId: material.section.eventId, userId: actor.userId } },
+        select: { status: { select: { code: true } }, paymentStatus: true },
+      });
+      if (!registration || registration.status.code !== 'REGISTERED' || (registration.paymentStatus !== 'PAID' && registration.paymentStatus !== 'FREE')) {
+        throw new Error('Not authorized to access this material');
+      }
+    }
+  }
+
+  return prisma.materialProgress.upsert({
+    where: {
+      userId_materialId: { userId: actor.userId, materialId }
+    },
+    update: {
+      isCompleted: true,
+      completedAt: new Date(),
+    },
+    create: {
+      userId: actor.userId,
+      materialId,
+      isCompleted: true,
+      completedAt: new Date(),
+    }
+  });
+}
+
+export async function unmarkMaterialAsCompleted(actor: AuthActor, materialId: string) {
+  await prisma.materialProgress.deleteMany({
+    where: { userId: actor.userId, materialId }
+  });
+}
+
+export async function reorderEventSections(actor: AuthActor, eventId: string, sectionIds: string[]) {
+  await verifyEventOwnership(actor, eventId);
+
+  const updates = sectionIds.map((id, index) =>
+    prisma.eventSection.update({
+      where: { id },
+      data: { order: index },
+    })
+  );
+
+  await prisma.$transaction(updates);
+}
+
+export async function reorderEventMaterials(actor: AuthActor, eventId: string, sectionId: string, materialIds: string[]) {
+  await verifyEventOwnership(actor, eventId);
+
+  const section = await prisma.eventSection.findFirst({ where: { id: sectionId, eventId } });
+  if (!section) throw new Error('Section not found');
+
+  const updates = materialIds.map((id, index) =>
+    prisma.eventMaterial.update({
+      where: { id, sectionId },
+      data: { order: index },
+    })
+  );
+
+  await prisma.$transaction(updates);
 }

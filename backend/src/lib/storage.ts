@@ -57,6 +57,11 @@ function getFileExtension(file: File) {
   if (normalizedName.endsWith('.webp')) return '.webp';
   if (normalizedName.endsWith('.gif')) return '.gif';
   if (normalizedName.endsWith('.avif')) return '.avif';
+  if (normalizedName.endsWith('.pdf')) return '.pdf';
+  if (normalizedName.endsWith('.doc')) return '.doc';
+  if (normalizedName.endsWith('.docx')) return '.docx';
+  if (normalizedName.endsWith('.zip')) return '.zip';
+  if (normalizedName.endsWith('.rar')) return '.rar';
 
   const mimeMap: Record<string, string> = {
     'image/jpeg': '.jpg',
@@ -64,6 +69,11 @@ function getFileExtension(file: File) {
     'image/webp': '.webp',
     'image/gif': '.gif',
     'image/avif': '.avif',
+    'application/pdf': '.pdf',
+    'application/msword': '.doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+    'application/zip': '.zip',
+    'application/vnd.rar': '.rar',
   };
 
   return mimeMap[file.type] ?? '.bin';
@@ -135,5 +145,31 @@ export async function uploadProfilePhoto(file: File) {
   return {
     objectName,
     imageUrl: buildPublicObjectUrl(objectName),
+  };
+}
+
+export async function uploadEventDocument(file: File) {
+  const allowedTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/zip',
+    'application/vnd.rar',
+  ];
+
+  if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|doc|docx|zip|rar)$/i)) {
+    throw new Error('Invalid document format. Allowed: PDF, DOC, DOCX, ZIP, RAR');
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const objectName = `events/materials/${crypto.randomUUID()}${getFileExtension(file)}`;
+
+  await getMinioClient().putObject(env.MINIO_BUCKET, objectName, buffer, buffer.length, {
+    'Content-Type': file.type || 'application/octet-stream',
+  });
+
+  return {
+    objectName,
+    fileUrl: buildPublicObjectUrl(objectName),
   };
 }

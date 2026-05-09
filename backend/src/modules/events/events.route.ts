@@ -18,8 +18,19 @@ import {
   getMyEvents,
   getEventRegistrations,
   updateRegistrationStatus,
+  createEventSection,
+  updateEventSection,
+  deleteEventSection,
+  createEventMaterial,
+  updateEventMaterial,
+  deleteEventMaterial,
+  getEventSyllabus,
+  markMaterialAsCompleted,
+  unmarkMaterialAsCompleted,
+  reorderEventSections,
+  reorderEventMaterials,
 } from './events.service';
-import { uploadEventBanner, uploadPaymentProof } from '../../lib/storage';
+import { uploadEventBanner, uploadPaymentProof, uploadEventDocument } from '../../lib/storage';
 
 function mapMasterDataError(error: unknown) {
   const message = error instanceof Error ? error.message : undefined;
@@ -146,7 +157,11 @@ const listEventsQuerySchema = t.Object({
   q: t.Optional(t.String()),
   typeSlug: t.Optional(t.String()),
   modeSlug: t.Optional(t.String()),
+  levelSlug: t.Optional(t.String()),
   statusCode: t.Optional(t.String()),
+  isFree: t.Optional(t.Union([t.Boolean(), t.String()])),
+  minPrice: t.Optional(t.Numeric()),
+  maxPrice: t.Optional(t.Numeric()),
   page: t.Optional(t.Numeric()),
   limit: t.Optional(t.Numeric()),
   sortBy: t.Optional(t.String()),
@@ -415,15 +430,52 @@ const updateRegistrationStatusBodySchema = t.Object({
   paymentStatus: t.Optional(t.String()),
 });
 
+const eventSectionBodySchema = t.Object({
+  title: t.String({ minLength: 3 }),
+  order: t.Optional(t.Numeric()),
+  isActive: t.Optional(t.Boolean()),
+});
+
+const eventMaterialBodySchema = t.Object({
+  title: t.String({ minLength: 3 }),
+  type: t.Union([t.Literal('ARTICLE'), t.Literal('VIDEO'), t.Literal('DOCUMENT'), t.Literal('QUIZ')]),
+  content: t.Optional(t.Union([t.String(), t.Null()])),
+  videoUrl: t.Optional(t.Union([t.String(), t.Null()])),
+  fileUrl: t.Optional(t.Union([t.String(), t.Null()])),
+  durationMin: t.Optional(t.Union([t.Numeric(), t.Null()])),
+  isPreview: t.Optional(t.Boolean()),
+  order: t.Optional(t.Numeric()),
+});
+
+const reorderBodySchema = t.Object({
+  ids: t.Array(t.String()),
+});
+
+const documentUploadSuccessSchema = t.Object({
+  success: t.Literal(true),
+  data: t.Object({
+    fileUrl: t.String(),
+  }),
+});
+
 export const eventsRoute = new Elysia({ name: 'events-route' })
   .get(
     '/api/events',
     async ({ query }) => {
+      let isFreeParam: boolean | undefined = undefined;
+      if (query.isFree !== undefined) {
+        isFreeParam = query.isFree === true || query.isFree === 'true';
+      }
+
       const data = await listEvents({
         q: query.q,
         typeSlug: query.typeSlug,
         modeSlug: query.modeSlug,
+        levelSlug: query.levelSlug,
         statusCode: query.statusCode,
+        isFree: isFreeParam,
+        minPrice: query.minPrice,
+        maxPrice: query.maxPrice,
         page: query.page,
         limit: query.limit,
         sortBy: query.sortBy,
@@ -510,6 +562,108 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
         tags: ['Events'],
         summary: 'Get event by id or slug',
         description: 'Get public event details by id or slug.',
+      },
+    },
+  )
+  .get(
+    '/api/events/:id/syllabus',
+    async ({ params, headers, set }) => {
+      try {
+        let userId: string | undefined;
+        if (headers.authorization) {
+          const authResult = await requireAuth(headers as Record<string, string | undefined>);
+          if (authResult.ok) {
+            userId = authResult.user.id;
+          }
+        }
+        
+        const data = await getEventSyllabus(params.id, userId);
+
+        return {
+          success: true as const,
+          data,
+        };
+      } catch (error) {
+        set.status = 500;
+        return {
+          success: false as const,
+          message: error instanceof Error ? error.message : 'Failed to load syllabus',
+        };
+      }
+    },
+    {
+      params: t.Object({ id: t.String() }),
+      detail: {
+        tags: ['Events'],
+        summary: 'Get event syllabus',
+        description: 'Get syllabus/curriculum for an event with masked content for unauthorized users.',
+      },
+    },
+  )
+  .post(
+    '/api/events/materials/:materialId/complete',
+    async ({ headers, params, set }) => {
+      const authResult = await requireAuth(headers as Record<string, string | undefined>);
+      if (!authResult.ok) { set.status = authResult.status; return authResult.body; }
+
+      try {
+        const data = await markMaterialAsCompleted(
+          { userId: authResult.user.id, role: authResult.user.role as any },
+          params.materialId
+        );
+
+        return {
+          success: true as const,
+          message: 'Material marked as completed',
+          data,
+        };
+      } catch (error) {
+        set.status = 403;
+        return {
+          success: false as const,
+          message: error instanceof Error ? error.message : 'Forbidden',
+        };
+      }
+    },
+    {
+      params: t.Object({ materialId: t.String() }),
+      detail: {
+        tags: ['Events'],
+        summary: 'Mark material as completed',
+        description: 'Marks a learning material as completed for the authenticated user.',
+      },
+    },
+  )
+  .delete(
+    '/api/events/materials/:materialId/complete',
+    async ({ headers, params, set }) => {
+      const authResult = await requireAuth(headers as Record<string, string | undefined>);
+      if (!authResult.ok) { set.status = authResult.status; return authResult.body; }
+
+      try {
+        await unmarkMaterialAsCompleted(
+          { userId: authResult.user.id, role: authResult.user.role as any },
+          params.materialId
+        );
+
+        return {
+          success: true as const,
+          message: 'Material completion unmarked',
+        };
+      } catch (error) {
+        set.status = 403;
+        return {
+          success: false as const,
+          message: error instanceof Error ? error.message : 'Forbidden',
+        };
+      }
+    },
+    {
+      params: t.Object({ materialId: t.String() }),
+      detail: {
+        tags: ['Events'],
+        summary: 'Unmark material as completed',
+        description: 'Removes the completion mark from a learning material for the authenticated user.',
       },
     },
   )
@@ -800,6 +954,61 @@ export const eventsManagementRoute = new Elysia({ name: 'events-management-route
         tags: ['Management'],
         summary: 'Upload event banner',
         description: 'Upload a banner image to MinIO and return its public URL.',
+      },
+    },
+  )
+  .post(
+    '/api/management/uploads/event-material',
+    async ({ headers, body, set }) => {
+      const authResult = await requireRole(headers, [...managementRoles]);
+      if (!authResult.ok) {
+        set.status = authResult.status;
+        return authResult.body;
+      }
+
+      try {
+        const file = body.file as File;
+        
+        if (!file) {
+          set.status = 400;
+          return { success: false as const, message: 'File is required' };
+        }
+
+        if (file.size > 20 * 1024 * 1024) {
+          set.status = 400;
+          return { success: false as const, message: 'Document must be 20MB or smaller' };
+        }
+
+        const uploaded = await uploadEventDocument(file);
+
+        return {
+          success: true as const,
+          data: {
+            fileUrl: uploaded.fileUrl,
+          },
+        };
+      } catch (error) {
+        set.status = 500;
+        return {
+          success: false as const,
+          message: error instanceof Error ? error.message : 'Failed to upload material document',
+        };
+      }
+    },
+    {
+      body: t.Object({
+        file: t.File(),
+      }),
+      response: {
+        200: documentUploadSuccessSchema,
+        400: authErrorSchema,
+        401: authErrorSchema,
+        403: authErrorSchema,
+      },
+      detail: {
+        tags: ['Management'],
+        summary: 'Upload event material document',
+        description: 'Upload an event material document (PDF, ZIP, DOCX) to MinIO and return its public URL.',
       },
     },
   )
@@ -1325,4 +1534,124 @@ export const eventsManagementRoute = new Elysia({ name: 'events-management-route
         description: 'Update the status or payment status of an event registration.',
       },
     },
+  )
+  .post(
+    '/api/management/events/:id/sections',
+    async ({ headers, params, body, set }) => {
+      const authResult = await requireRole(headers, [...managementRoles]);
+      if (!authResult.ok) { set.status = authResult.status; return authResult.body; }
+      try {
+        const data = await createEventSection({ userId: authResult.user.id, role: authResult.user.role as any }, params.id, body);
+        return { success: true as const, message: 'Section created', data };
+      } catch (error) {
+        set.status = 400;
+        return { success: false as const, message: error instanceof Error ? error.message : 'Error' };
+      }
+    },
+    { params: t.Object({ id: t.String() }), body: eventSectionBodySchema }
+  )
+  .put(
+    '/api/management/events/:id/sections/:sectionId',
+    async ({ headers, params, body, set }) => {
+      const authResult = await requireRole(headers, [...managementRoles]);
+      if (!authResult.ok) { set.status = authResult.status; return authResult.body; }
+      try {
+        const data = await updateEventSection({ userId: authResult.user.id, role: authResult.user.role as any }, params.id, params.sectionId, body);
+        return { success: true as const, message: 'Section updated', data };
+      } catch (error) {
+        set.status = 400;
+        return { success: false as const, message: error instanceof Error ? error.message : 'Error' };
+      }
+    },
+    { params: t.Object({ id: t.String(), sectionId: t.String() }), body: eventSectionBodySchema }
+  )
+  .delete(
+    '/api/management/events/:id/sections/:sectionId',
+    async ({ headers, params, set }) => {
+      const authResult = await requireRole(headers, [...managementRoles]);
+      if (!authResult.ok) { set.status = authResult.status; return authResult.body; }
+      try {
+        await deleteEventSection({ userId: authResult.user.id, role: authResult.user.role as any }, params.id, params.sectionId);
+        return { success: true as const, message: 'Section deleted' };
+      } catch (error) {
+        set.status = 400;
+        return { success: false as const, message: error instanceof Error ? error.message : 'Error' };
+      }
+    },
+    { params: t.Object({ id: t.String(), sectionId: t.String() }) }
+  )
+  .post(
+    '/api/management/events/:id/sections/:sectionId/materials',
+    async ({ headers, params, body, set }) => {
+      const authResult = await requireRole(headers, [...managementRoles]);
+      if (!authResult.ok) { set.status = authResult.status; return authResult.body; }
+      try {
+        const data = await createEventMaterial({ userId: authResult.user.id, role: authResult.user.role as any }, params.id, params.sectionId, body);
+        return { success: true as const, message: 'Material created', data };
+      } catch (error) {
+        set.status = 400;
+        return { success: false as const, message: error instanceof Error ? error.message : 'Error' };
+      }
+    },
+    { params: t.Object({ id: t.String(), sectionId: t.String() }), body: eventMaterialBodySchema }
+  )
+  .put(
+    '/api/management/events/:id/materials/:materialId',
+    async ({ headers, params, body, set }) => {
+      const authResult = await requireRole(headers, [...managementRoles]);
+      if (!authResult.ok) { set.status = authResult.status; return authResult.body; }
+      try {
+        const data = await updateEventMaterial({ userId: authResult.user.id, role: authResult.user.role as any }, params.id, params.materialId, body);
+        return { success: true as const, message: 'Material updated', data };
+      } catch (error) {
+        set.status = 400;
+        return { success: false as const, message: error instanceof Error ? error.message : 'Error' };
+      }
+    },
+    { params: t.Object({ id: t.String(), materialId: t.String() }), body: eventMaterialBodySchema }
+  )
+  .delete(
+    '/api/management/events/:id/materials/:materialId',
+    async ({ headers, params, set }) => {
+      const authResult = await requireRole(headers, [...managementRoles]);
+      if (!authResult.ok) { set.status = authResult.status; return authResult.body; }
+      try {
+        await deleteEventMaterial({ userId: authResult.user.id, role: authResult.user.role as any }, params.id, params.materialId);
+        return { success: true as const, message: 'Material deleted' };
+      } catch (error) {
+        set.status = 400;
+        return { success: false as const, message: error instanceof Error ? error.message : 'Error' };
+      }
+    },
+    { params: t.Object({ id: t.String(), materialId: t.String() }) }
+  )
+  .put(
+    '/api/management/events/:id/sections/reorder',
+    async ({ headers, params, body, set }) => {
+      const authResult = await requireRole(headers, [...managementRoles]);
+      if (!authResult.ok) { set.status = authResult.status; return authResult.body; }
+      try {
+        await reorderEventSections({ userId: authResult.user.id, role: authResult.user.role as any }, params.id, body.ids);
+        return { success: true as const, message: 'Sections reordered' };
+      } catch (error) {
+        set.status = 400;
+        return { success: false as const, message: error instanceof Error ? error.message : 'Error' };
+      }
+    },
+    { params: t.Object({ id: t.String() }), body: reorderBodySchema }
+  )
+  .put(
+    '/api/management/events/:id/sections/:sectionId/materials/reorder',
+    async ({ headers, params, body, set }) => {
+      const authResult = await requireRole(headers, [...managementRoles]);
+      if (!authResult.ok) { set.status = authResult.status; return authResult.body; }
+      try {
+        await reorderEventMaterials({ userId: authResult.user.id, role: authResult.user.role as any }, params.id, params.sectionId, body.ids);
+        return { success: true as const, message: 'Materials reordered' };
+      } catch (error) {
+        set.status = 400;
+        return { success: false as const, message: error instanceof Error ? error.message : 'Error' };
+      }
+    },
+    { params: t.Object({ id: t.String(), sectionId: t.String() }), body: reorderBodySchema }
   );

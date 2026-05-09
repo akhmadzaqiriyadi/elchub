@@ -188,6 +188,44 @@ async function seedEvents() {
         { userId: user.id, statusId: registeredStatus.id },
         { userId: attendeeA.id, statusId: registeredStatus.id },
       ],
+      sections: [
+        {
+          title: 'Modul 1: Persiapan Kelas',
+          order: 1,
+          materials: [
+            {
+              title: 'Selamat Datang di Cohort',
+              type: 'VIDEO',
+              videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ',
+              durationMin: 5,
+              isPreview: true,
+              order: 1,
+            },
+            {
+              title: 'Instalasi Tools (Node.js & VSCode)',
+              type: 'ARTICLE',
+              content: '<p>Pastikan kamu sudah menginstal Node.js versi 18 ke atas dan ekstensi yang diperlukan.</p>',
+              durationMin: 10,
+              isPreview: false,
+              order: 2,
+            }
+          ]
+        },
+        {
+          title: 'Modul 2: Dasar Next.js App Router',
+          order: 2,
+          materials: [
+            {
+              title: 'Memahami Routing & Layouts',
+              type: 'VIDEO',
+              videoUrl: 'https://youtube.com/watch?v=dQw4w9WgXcQ',
+              durationMin: 20,
+              isPreview: false,
+              order: 1,
+            }
+          ]
+        }
+      ],
     },
     {
       slug: 'backend-scalability-masterclass',
@@ -340,8 +378,38 @@ async function seedEvents() {
           eventId: event.id,
           userId: registration.userId,
           statusId: registration.statusId,
+          paymentStatus: 'PAID',
         })),
       });
+    }
+
+    await prisma.eventSection.deleteMany({ where: { eventId: event.id } });
+
+    if ((item as any).sections && (item as any).sections.length > 0) {
+      for (const section of (item as any).sections) {
+        const createdSection = await prisma.eventSection.create({
+          data: {
+            eventId: event.id,
+            title: section.title,
+            order: section.order,
+          }
+        });
+        
+        if (section.materials && section.materials.length > 0) {
+          await prisma.eventMaterial.createMany({
+            data: section.materials.map((mat: any) => ({
+              sectionId: createdSection.id,
+              title: mat.title,
+              type: mat.type,
+              content: mat.content,
+              videoUrl: mat.videoUrl,
+              durationMin: mat.durationMin,
+              isPreview: mat.isPreview,
+              order: mat.order,
+            }))
+          });
+        }
+      }
     }
   }
 }
