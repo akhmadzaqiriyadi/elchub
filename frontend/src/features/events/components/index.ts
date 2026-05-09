@@ -7,5 +7,6 @@ export { EventBadge } from './event-badge';
 export { SpeakerCard } from './speaker-card';
 export { EventFilter } from './event-filter';
 export { EventStats } from './event-stats';
+export { EventSyllabusView } from './event-syllabus-view';
 
 export type { };

@@ -1342,8 +1342,9 @@ export async function deleteEventMaterial(actor: AuthActor, eventId: string, mat
   });
 }
 
-export async function getEventSyllabus(eventId: string, userId?: string) {
+export async function getEventSyllabus(eventId: string, userId?: string, showInactive = false) {
   let isAuthorized = false;
+  let isOwner = false;
 
   if (userId) {
     const event = await prisma.event.findFirst({
@@ -1353,7 +1354,9 @@ export async function getEventSyllabus(eventId: string, userId?: string) {
 
     if (event) {
       isAuthorized = true;
+      isOwner = true;
     } else {
+
       const registration = await prisma.eventRegistration.findUnique({
         where: { eventId_userId: { eventId, userId } },
         select: { status: { select: { code: true } }, paymentStatus: true },
@@ -1366,8 +1369,12 @@ export async function getEventSyllabus(eventId: string, userId?: string) {
   }
 
   const sections = await prisma.eventSection.findMany({
-    where: { eventId, isActive: true },
+    where: { 
+      eventId, 
+      ...(isOwner || showInactive ? {} : { isActive: true }) 
+    },
     orderBy: { order: 'asc' },
+
     include: {
       materials: {
         orderBy: { order: 'asc' },

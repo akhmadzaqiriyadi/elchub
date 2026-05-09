@@ -279,3 +279,62 @@ export type ManagementRegistrationMutationPayload = {
   success: boolean;
   message?: string;
 };
+
+// ============================================================================
+// LMS / Syllabus Types
+// ============================================================================
+
+export type MaterialType = 'VIDEO' | 'ARTICLE' | 'DOCUMENT' | 'QUIZ';
+
+export type MaterialItem = {
+  id: string;
+  sectionId: string;
+  title: string;
+  type: MaterialType;
+  content: string | null;
+  videoUrl: string | null;
+  fileUrl: string | null;
+  durationMin: number | null;
+  isPreview: boolean;
+  order: number;
+  userProgress?: {
+    isCompleted: boolean;
+    completedAt: string;
+  } | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SectionItem = {
+  id: string;
+  eventId: string;
+  title: string;
+  order: number;
+  isActive: boolean;
+  materials: MaterialItem[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SectionMutationInput = {
+  title: string;
+  order?: number;
+  isActive?: boolean;
+};
+
+export type MaterialMutationInput = {
+  title: string;
+  type: MaterialType;
+  content?: string | null;
+  videoUrl?: string | null;
+  fileUrl?: string | null;
+  durationMin?: number | null;
+  isPreview?: boolean;
+  order?: number;
+};
+
+export type SyllabusPayload = {
+  success: true;
+  data: SectionItem[];
+};
+

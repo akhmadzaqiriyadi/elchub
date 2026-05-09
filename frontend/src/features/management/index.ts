@@ -7,3 +7,6 @@ export { UserTableRow } from './components/user-table-row';
 export { UserFormModal } from './components/user-form-modal';
 export { UserDeleteConfirmModal } from './components/user-delete-confirm-modal';
 export { UserFilters } from './components/user-filters';
+export { SyllabusBuilder } from './components/syllabus-builder';
+
+export { useManagementSyllabus } from './hooks/use-management-syllabus';

@@ -6,84 +6,8 @@
 'use client';
 
 import { useState } from 'react';
-import { EventCard, EventFilter } from '@/features/events';
+import { EventCard, EventFilter, usePublicEvents } from '@/features/events';
 import { Spinner } from '@/components/ui/spinner';
-
-// Mock events data
-const mockEvents = [
-  {
-    id: '1',
-    title: 'React Advanced Patterns Workshop',
-    description: 'Pelajari advanced patterns dalam React untuk membuat aplikasi yang lebih scalable.',
-    date: '20 Apr 2026',
-    time: '14:00 - 17:00',
-    location: 'Online',
-    category: 'Workshop',
-    badge: 'upcoming' as const,
-    attendees: 156,
-    price: 0,
-  },
-  {
-    id: '2',
-    title: 'Web Development Masterclass',
-    description: 'Sesi intensif dengan praktik langsung tentang web development modern.',
-    date: '22 Apr 2026',
-    time: '10:00 - 12:00',
-    location: 'Jakarta, Indonesia',
-    category: 'Workshop',
-    badge: 'upcoming' as const,
-    attendees: 89,
-    price: 150000,
-  },
-  {
-    id: '3',
-    title: 'AI & Machine Learning Basics',
-    description: 'Pengenalan fundamental AI/ML untuk developer pemula.',
-    date: '25 Apr 2026',
-    time: '16:00 - 17:30',
-    location: 'Online',
-    category: 'Webinar',
-    badge: 'upcoming' as const,
-    attendees: 234,
-    price: 0,
-  },
-  {
-    id: '4',
-    title: 'Mentoring One-on-One Session',
-    description: 'Sesi mentoring personal dengan expert untuk career guidance.',
-    date: '21 Apr 2026',
-    time: '15:00 - 16:00',
-    location: 'Online',
-    category: 'Mentoring',
-    badge: 'featured' as const,
-    attendees: 12,
-    price: 500000,
-  },
-  {
-    id: '5',
-    title: 'Hackathon 2026: Innovation Challenge',
-    description: 'Kompetisi hackathon dengan hadiah total Rp 500 juta.',
-    date: '01 May 2026',
-    time: '08:00 - 20:00',
-    location: 'Jakarta, Indonesia',
-    category: 'Hackathon',
-    badge: 'upcoming' as const,
-    attendees: 345,
-    price: 0,
-  },
-  {
-    id: '6',
-    title: 'TypeScript Deep Dive',
-    description: 'Explore TypeScript advanced features dan best practices.',
-    date: '23 Apr 2026',
-    time: '13:00 - 15:00',
-    location: 'Online',
-    category: 'Workshop',
-    badge: 'upcoming' as const,
-    attendees: 198,
-    price: 0,
-  },
-];
 
 interface FilterState {
   category: string | null;
@@ -91,25 +15,36 @@ interface FilterState {
   searchQuery: string;
 }
 
+const categoryMap: Record<string, string> = {
+  'Workshop': 'workshop',
+  'Webinar': 'webinar',
+  'Mentoring': 'mentoring',
+  'Hackathon': 'hackathon',
+  'Networking': 'networking'
+};
+
+const modeMap: Record<string, string> = {
+  'Online': 'online',
+  'Offline': 'offline',
+  'Hybrid': 'hybrid'
+};
+
 export default function EventsPage() {
   const [filters, setFilters] = useState<FilterState>({
     category: null,
     type: null,
     searchQuery: '',
   });
-  const [isLoading] = useState(false);
 
-  const filteredEvents = mockEvents.filter((event) => {
-    if (filters.category && event.category !== filters.category) return false;
-    if (filters.searchQuery) {
-      const query = filters.searchQuery.toLowerCase();
-      return (
-        event.title.toLowerCase().includes(query) ||
-        event.description.toLowerCase().includes(query)
-      );
-    }
-    return true;
+  const { data, isLoading } = usePublicEvents({
+    q: filters.searchQuery || undefined,
+    typeSlug: filters.category ? categoryMap[filters.category] : undefined,
+    modeSlug: filters.type ? modeMap[filters.type] : undefined,
+    statusCode: 'PUBLISHED',
   });
+
+  const events = data?.items || [];
+  const total = data?.pagination?.total || 0;
 
   return (
     <main className="min-h-[calc(100vh-160px)] bg-slate-50 dark:bg-slate-900 py-8 sm:py-12">
@@ -139,22 +74,30 @@ export default function EventsPage() {
               <div className="flex items-center justify-center py-12">
                 <Spinner className="h-8 w-8" />
               </div>
-            ) : filteredEvents.length > 0 ? (
+            ) : events.length > 0 ? (
               <>
                 {/* Results Summary */}
                 <div className="mb-6">
                   <p className="text-sm text-primary/70 dark:text-slate-400">
-                    Menampilkan <span className="font-semibold">{filteredEvents.length}</span> dari{' '}
-                    <span className="font-semibold">{mockEvents.length}</span> event
+                    Menampilkan <span className="font-semibold">{events.length}</span> dari{' '}
+                    <span className="font-semibold">{total}</span> event
                   </p>
                 </div>
 
                 {/* Events Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {filteredEvents.map((event) => (
+                  {events.map((event: any) => (
                     <EventCard
                       key={event.id}
-                      {...event}
+                      id={event.id}
+                      title={event.title}
+                      description={event.description || ''}
+                      date={event.startAt ? new Date(event.startAt).toLocaleDateString('id-ID') : 'TBD'}
+                      time={event.startAt ? new Date(event.startAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
+                      location={event.mode.name}
+                      category={event.type.name}
+                      price={event.price || 0}
+                      attendees={event.attendees || 0}
                     />
                   ))}
                 </div>
@@ -188,3 +131,5 @@ export default function EventsPage() {
     </main>
   );
 }
+
+

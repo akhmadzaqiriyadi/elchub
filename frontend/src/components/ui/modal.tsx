@@ -42,9 +42,10 @@ export function BaseModal({
       <div className="fixed top-0 left-0 w-screen h-screen z-50 flex items-center justify-center p-4 pointer-events-none">
         <div
           className={cn(
-            'relative w-full max-w-sm overflow-hidden rounded-3xl border border-primary/15 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800 pointer-events-auto',
-            className,
+            'relative w-full overflow-hidden rounded-3xl border border-primary/15 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800 pointer-events-auto',
+            className || 'max-w-sm',
           )}
+
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}

@@ -22,6 +22,8 @@ import type {
   ManagementRegistrationListPayload,
   ManagementRegistrationUpdateInput,
   ManagementRegistrationMutationPayload,
+  SectionMutationInput,
+  MaterialMutationInput,
 } from './types';
 
 function toQueryString(params: EventListParams) {
@@ -230,6 +232,83 @@ export function updateManagementEventRegistration(eventId: string, registrationI
   return apiRequest<ManagementRegistrationMutationPayload>(`/management/events/${eventId}/registrations/${registrationId}`, {
     method: 'PATCH',
     body: input,
+    token,
+  });
+}
+
+// ============================================================================
+// LMS Management API
+// ============================================================================
+
+export function createManagementSection(eventId: string, input: SectionMutationInput, token: string) {
+  return apiRequest<any>(`/management/events/${eventId}/sections`, {
+    method: 'POST',
+    body: input,
+    token,
+  });
+}
+
+export function createManagementMaterial(eventId: string, sectionId: string, input: MaterialMutationInput, token: string) {
+  return apiRequest<any>(`/management/events/${eventId}/sections/${sectionId}/materials`, {
+    method: 'POST',
+    body: input,
+    token,
+  });
+}
+
+export function reorderManagementSections(eventId: string, ids: string[], token: string) {
+  return apiRequest<any>(`/management/events/${eventId}/sections/reorder`, {
+    method: 'PUT',
+    body: { ids },
+    token,
+  });
+}
+
+export function reorderManagementMaterials(eventId: string, sectionId: string, ids: string[], token: string) {
+  return apiRequest<any>(`/management/events/${eventId}/sections/${sectionId}/materials/reorder`, {
+    method: 'PUT',
+    body: { ids },
+    token,
+  });
+}
+export function updateManagementSection(eventId: string, sectionId: string, input: SectionMutationInput, token: string) {
+  return apiRequest<any>(`/management/events/${eventId}/sections/${sectionId}`, {
+    method: 'PUT',
+    body: input,
+    token,
+  });
+}
+
+export function deleteManagementSection(eventId: string, sectionId: string, token: string) {
+  return apiRequest<any>(`/management/events/${eventId}/sections/${sectionId}`, {
+    method: 'DELETE',
+    token,
+  });
+}
+
+export function updateManagementMaterial(eventId: string, materialId: string, input: MaterialMutationInput, token: string) {
+  return apiRequest<any>(`/management/events/${eventId}/materials/${materialId}`, {
+    method: 'PUT',
+    body: input,
+    token,
+  });
+}
+
+export function deleteManagementMaterial(eventId: string, materialId: string, token: string) {
+  return apiRequest<any>(`/management/events/${eventId}/materials/${materialId}`, {
+    method: 'DELETE',
+    token,
+  });
+}
+
+export function uploadManagementEventMaterial(file: File, token: string) {
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return apiRequest<{ success: true; data: { fileUrl: string } }>('/management/uploads/event-material', {
+    method: 'POST',
+    body: formData,
     token,
   });
 }

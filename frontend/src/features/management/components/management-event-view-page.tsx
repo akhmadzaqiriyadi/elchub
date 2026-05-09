@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/auth-context';
 import { Input } from '@/components/ui/input';
 import { getManagementEventById } from '../api';
+import { SyllabusBuilder } from './syllabus-builder';
 
 function formatDateTime(value: string | null) {
   if (!value) return '-';
@@ -35,8 +36,14 @@ export function ManagementEventViewPage({ eventId }: { eventId: string }) {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href={`/management/events/${eventId}/registrations`}
+            href={`/management/events/${eventId}/syllabus`}
             className="rounded-lg bg-[#2E417B] px-3 py-2 text-sm font-medium text-white hover:bg-[#23306a] dark:bg-blue-600 dark:hover:bg-blue-700"
+          >
+            Kelola Silabus
+          </Link>
+          <Link
+            href={`/management/events/${eventId}/registrations`}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             Verifikasi Pendaftar
           </Link>
@@ -48,6 +55,7 @@ export function ManagementEventViewPage({ eventId }: { eventId: string }) {
           </Link>
         </div>
       </div>
+
 
       {isLoading && <p className="text-sm text-slate-500">Loading...</p>}
       {error && <p className="text-sm text-red-500">Failed to load event data.</p>}
@@ -204,6 +212,13 @@ export function ManagementEventViewPage({ eventId }: { eventId: string }) {
           </div>
         </div>
       )}
+
+      {event && (
+        <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
+          <SyllabusBuilder eventId={eventId} />
+        </div>
+      )}
     </section>
+
   );
 }

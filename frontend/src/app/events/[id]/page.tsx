@@ -6,7 +6,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { SpeakerCard, EventStats, useEventRegistration, useEventDetail } from '@/features/events';
+import { SpeakerCard, EventStats, useEventRegistration, useEventDetail, EventSyllabusView } from '@/features/events';
 import { useAuth } from '@/features/auth';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useMemo } from 'react';
@@ -316,6 +316,15 @@ export default function EventDetailPage() {
                 ))}
               </ul>
             </section>
+
+            {/* Syllabus / Curriculum */}
+            <section className="rounded-lg border border-primary/15 dark:border-slate-700 bg-white dark:bg-slate-800 p-6">
+              <h2 className="text-xl font-bold text-primary dark:text-slate-100 mb-6">
+                Kurikulum & Materi
+              </h2>
+              <EventSyllabusView eventId={eventId} token={token ?? undefined} />
+            </section>
+
 
             {/* Speakers */}
             {event.speakers.length > 0 && (
