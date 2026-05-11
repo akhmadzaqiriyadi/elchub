@@ -42,7 +42,7 @@ export function NavbarSearch({
           isFocused && 'ring-2 ring-[#2E417B]/50 border-[#2E417B]',
         )}
       >
-        <Search className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+        <Search className="h-5 w-5 text-slate-600 dark:text-slate-400 shrink-0" />
         <input
           type="text"
           value={query}
@@ -58,7 +58,7 @@ export function NavbarSearch({
             onClick={handleClear}
             className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         )}
       </div>

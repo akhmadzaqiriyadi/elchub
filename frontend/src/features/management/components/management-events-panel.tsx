@@ -8,6 +8,7 @@ import { CustomDropdown } from './custom-dropdown';
 import { Pagination } from '@/components/ui/pagination';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { useManagementEventCrud } from '../hooks/use-management-event-crud';
+import { X } from 'lucide-react';
 import { WarningModal } from '@/components/ui/warning-modal';
 
 function getStatusBadgeClass(statusCode: string) {
@@ -72,7 +73,7 @@ export function ManagementEventsPanel() {
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Event Management</h2>
-        <div className="flex w-full items-center gap-2 md:w-auto">
+        <div className="flex w-full flex-wrap items-center gap-2 md:w-auto">
           <input
             value={searchInput}
             onChange={(event) => {
@@ -82,12 +83,32 @@ export function ManagementEventsPanel() {
             placeholder="Search event title..."
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-64 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
           />
-          <Link
-            href="/management/events/create"
-            className="rounded-lg bg-[#2E417B] px-3 py-2 text-sm font-semibold text-white"
-          >
-            Create Event
-          </Link>
+          
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setPage(1);
+                setSearchInput('');
+                setTypeSlug('');
+                setModeSlug('');
+                setStatusCode('');
+                setSortBy('createdAt');
+                setSortOrder('desc');
+                setDateRange({});
+              }}
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-rose-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 shadow-sm"
+            >
+              <X className="h-4 w-4" />
+              <span>Reset Filter</span>
+            </button>
+
+            <Link
+              href="/management/events/create"
+              className="rounded-lg bg-[#2E417B] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#23306a] transition-colors"
+            >
+              Create Event
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -110,123 +131,113 @@ export function ManagementEventsPanel() {
         </div>
       </div>
 
-      <div className="mb-4 grid gap-3 md:grid-cols-5 md:items-end">
-        <CustomDropdown
-          value={typeSlug}
-          onChange={(nextValue) => {
-            setPage(1);
-            setTypeSlug(nextValue);
-          }}
-          placeholder="All Types"
-          options={[
-            { value: '', label: 'All Types' },
-            ...(masterDataQuery.data?.data.types ?? []).map((type) => ({
-              value: type.slug ?? '',
-              label: type.name,
-            })),
-          ]}
-        />
+      {/* Filters Section */}
+      <div className="mb-6 space-y-4">
+        {/* Row 1: Basic Filters & Sorting */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Tipe Event</label>
+            <CustomDropdown
+              value={typeSlug}
+              onChange={(nextValue) => {
+                setPage(1);
+                setTypeSlug(nextValue);
+              }}
+              placeholder="Semua Tipe"
+              options={[
+                { value: '', label: 'Semua Tipe' },
+                ...(masterDataQuery.data?.data.types ?? []).map((type) => ({
+                  value: type.slug ?? '',
+                  label: type.name,
+                })),
+              ]}
+            />
+          </div>
 
-        <CustomDropdown
-          value={modeSlug}
-          onChange={(nextValue) => {
-            setPage(1);
-            setModeSlug(nextValue);
-          }}
-          placeholder="All Modes"
-          options={[
-            { value: '', label: 'All Modes' },
-            ...(masterDataQuery.data?.data.modes ?? []).map((mode) => ({
-              value: mode.slug ?? '',
-              label: mode.name,
-            })),
-          ]}
-        />
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Mode Event</label>
+            <CustomDropdown
+              value={modeSlug}
+              onChange={(nextValue) => {
+                setPage(1);
+                setModeSlug(nextValue);
+              }}
+              placeholder="Semua Mode"
+              options={[
+                { value: '', label: 'Semua Mode' },
+                ...(masterDataQuery.data?.data.modes ?? []).map((mode) => ({
+                  value: mode.slug ?? '',
+                  label: mode.name,
+                })),
+              ]}
+            />
+          </div>
 
-        <CustomDropdown
-          value={statusCode}
-          onChange={(nextValue) => {
-            setPage(1);
-            setStatusCode(nextValue);
-          }}
-          placeholder="All Statuses"
-          options={[
-            { value: '', label: 'All Statuses' },
-            ...(masterDataQuery.data?.data.eventStatuses ?? []).map((status) => ({
-              value: status.code ?? '',
-              label: status.name,
-            })),
-          ]}
-        />
-      </div>
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Status</label>
+            <CustomDropdown
+              value={statusCode}
+              onChange={(nextValue) => {
+                setPage(1);
+                setStatusCode(nextValue);
+              }}
+              placeholder="Semua Status"
+              options={[
+                { value: '', label: 'Semua Status' },
+                ...(masterDataQuery.data?.data.eventStatuses ?? []).map((status) => ({
+                  value: status.code ?? '',
+                  label: status.name,
+                })),
+              ]}
+            />
+          </div>
 
-      {/* Sorting and Date Filter */}
-      <div className="mb-4 grid gap-3 md:grid-cols-4">
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-1">
-            Sort By
-          </label>
-          <CustomDropdown
-            value={sortBy}
-            onChange={(nextValue) => {
-              setPage(1);
-              setSortBy(nextValue as 'createdAt' | 'startAt' | 'endAt' | 'title');
-            }}
-            placeholder="Sort By"
-            options={[
-              { value: 'createdAt', label: 'Created Date' },
-              { value: 'startAt', label: 'Start Date' },
-              { value: 'endAt', label: 'End Date' },
-              { value: 'title', label: 'Title' },
-            ]}
-          />
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Urutkan Berdasarkan</label>
+            <CustomDropdown
+              value={sortBy}
+              onChange={(nextValue) => {
+                setPage(1);
+                setSortBy(nextValue as 'createdAt' | 'startAt' | 'endAt' | 'title');
+              }}
+              placeholder="Pilih Urutan"
+              options={[
+                { value: 'createdAt', label: 'Tanggal Dibuat' },
+                { value: 'startAt', label: 'Tanggal Mulai' },
+                { value: 'endAt', label: 'Tanggal Berakhir' },
+                { value: 'title', label: 'Judul' },
+              ]}
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5 ml-1">Arah Urutan</label>
+            <CustomDropdown
+              value={sortOrder}
+              onChange={(nextValue) => {
+                setPage(1);
+                setSortOrder(nextValue as 'asc' | 'desc');
+              }}
+              placeholder="Pilih Arah"
+              options={[
+                { value: 'desc', label: 'Terbaru ke Terlama' },
+                { value: 'asc', label: 'Terlama ke Terbaru' },
+              ]}
+            />
+          </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-1">
-            Order
-          </label>
-          <CustomDropdown
-            value={sortOrder}
-            onChange={(nextValue) => {
-              setPage(1);
-              setSortOrder(nextValue as 'asc' | 'desc');
-            }}
-            placeholder="Order"
-            options={[
-              { value: 'desc', label: 'Newest First' },
-              { value: 'asc', label: 'Oldest First' },
-            ]}
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400 mb-1">
-            Date Range
-          </label>
+        {/* Row 2: Date Range */}
+        <div className="w-full">
           <DateRangePicker
             value={dateRange}
             onChange={(range: { from?: Date; to?: Date }) => {
               setPage(1);
               setDateRange(range);
             }}
-            placeholder="Select date range"
+            placeholder="Filter Jangkauan Tanggal"
             className="w-full"
           />
-        </div>
-
-        <div className="flex items-end">
-          <button
-            onClick={() => {
-              setPage(1);
-              setSortBy('createdAt');
-              setSortOrder('desc');
-              setDateRange({});
-            }}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-          >
-            Reset Filters
-          </button>
         </div>
       </div>
 

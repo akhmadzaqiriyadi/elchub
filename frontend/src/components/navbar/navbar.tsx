@@ -7,6 +7,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Menu } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -98,19 +99,7 @@ export function Navbar({ className }: NavbarProps) {
               className="lg:hidden p-1 sm:p-1.5 text-[#2E417B] dark:text-slate-300 hover:opacity-80 transition-opacity"
               aria-label="Toggle menu"
             >
-              <svg
-                className="h-5 w-5 sm:h-6 sm:w-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
+              <Menu className="h-6 w-6 sm:h-7 sm:w-7" />
             </button>
           </div>
         </div>

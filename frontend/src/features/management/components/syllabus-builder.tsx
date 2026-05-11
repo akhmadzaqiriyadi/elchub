@@ -5,12 +5,12 @@ import { useAuth } from '@/features/auth/auth-context';
 import { useEventSyllabus } from '@/features/events/hooks/use-event-syllabus';
 import { useManagementSyllabus } from '../hooks/use-management-syllabus';
 import { SectionItem, MaterialItem } from '../types';
-import { Plus, GripVertical, Video, FileText, HelpCircle, Eye, Lock, Edit2, Trash2, X, Upload, File } from 'lucide-react';
+import { Plus, GripVertical, Video, FileText, HelpCircle, Eye, Lock, Pencil, Trash2, X, Upload, File } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseModal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { WarningModal } from '@/components/ui/warning-modal';
-import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 
 export function SyllabusBuilder({ eventId }: { eventId: string }) {
   const { token } = useAuth();
@@ -186,33 +186,33 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
           <div key={section.id} className="group rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 overflow-hidden transition-all hover:shadow-md">
             <div className="flex items-center justify-between bg-slate-50/50 px-5 py-4 dark:bg-slate-800/50">
               <div className="flex items-center gap-3">
-                <GripVertical className="h-5 w-5 text-slate-400 cursor-move" />
-                <h4 className="font-bold text-slate-800 dark:text-slate-200">{section.title}</h4>
+                <GripVertical className="h-6 w-6 text-slate-400 cursor-move" />
+                <h4 className="font-bold text-lg text-slate-800 dark:text-slate-200">{section.title}</h4>
               </div>
               <div className="flex items-center gap-1">
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  className="h-8 w-8 p-0 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="h-10 w-10 p-0 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all rounded-full"
                   onClick={() => openMaterialModal(section.id)}
                 >
-                  <Plus className="h-5 w-5" />
+                  <Plus className="h-5 w-5" strokeWidth={3} />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="h-8 w-8 p-0 text-slate-400 hover:text-blue-600 transition-colors"
+                  className="h-10 w-10 p-0 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all rounded-full"
                   onClick={() => openSectionModal(section)}
                 >
-                  <Edit2 className="h-4 w-4" />
+                  <Pencil className="h-5 w-5" strokeWidth={2.5} />
                 </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  className="h-8 w-8 p-0 text-slate-400 hover:text-rose-600 transition-colors"
+                  className="h-10 w-10 p-0 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all rounded-full"
                   onClick={() => confirmDelete('section', section.id)}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-5 w-5" strokeWidth={2.5} />
                 </Button>
               </div>
             </div>
@@ -232,12 +232,12 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
                 section.materials.map((material: MaterialItem) => (
                   <div key={material.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group/item">
                     <div className="flex items-center gap-4">
-                      <GripVertical className="h-4 w-4 text-slate-300 cursor-move opacity-0 group-hover/item:opacity-100 transition-opacity" />
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
-                        {material.type === 'VIDEO' && <Video className="h-4 w-4 text-blue-500" />}
-                        {material.type === 'ARTICLE' && <FileText className="h-4 w-4 text-emerald-500" />}
-                        {material.type === 'DOCUMENT' && <File className="h-4 w-4 text-rose-500" />}
-                        {material.type === 'QUIZ' && <HelpCircle className="h-4 w-4 text-amber-500" />}
+                      <GripVertical className="h-5 w-5 text-slate-300 cursor-move opacity-0 group-hover/item:opacity-100 transition-opacity" />
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 shadow-sm">
+                        {material.type === 'VIDEO' && <Video className="h-6 w-6 text-blue-500" strokeWidth={2.5} />}
+                        {material.type === 'ARTICLE' && <FileText className="h-6 w-6 text-emerald-500" strokeWidth={2.5} />}
+                        {material.type === 'DOCUMENT' && <File className="h-6 w-6 text-rose-500" strokeWidth={2.5} />}
+                        {material.type === 'QUIZ' && <HelpCircle className="h-6 w-6 text-amber-500" strokeWidth={2.5} />}
                       </div>
                       <div>
                         <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">{material.title}</span>
@@ -253,18 +253,18 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-8 w-8 p-0 text-slate-400 opacity-0 group-hover/item:opacity-100 transition-opacity hover:text-blue-600"
+                        className="h-9 w-9 p-0 text-slate-400 opacity-0 group-hover/item:opacity-100 transition-all hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full"
                         onClick={() => openMaterialModal(section.id, material)}
                       >
-                        <Edit2 className="h-3.5 w-3.5" />
+                        <Pencil className="h-5 w-5" strokeWidth={2.5} />
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        className="h-8 w-8 p-0 text-rose-400 opacity-0 group-hover/item:opacity-100 transition-opacity hover:text-rose-600"
+                        className="h-9 w-9 p-0 text-rose-400 opacity-0 group-hover/item:opacity-100 transition-all hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-full"
                         onClick={() => confirmDelete('material', material.id)}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-5 w-5" strokeWidth={2.5} />
                       </Button>
                     </div>
                   </div>
@@ -276,8 +276,8 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
 
         {sections?.length === 0 && (
           <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 p-16 text-center dark:border-slate-800 bg-slate-50/30">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800">
-              <FileText className="h-8 w-8 text-slate-300" />
+            <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800">
+              <FileText className="h-10 w-10 text-slate-300" />
             </div>
             <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">Silabus Kosong</h4>
             <p className="mt-1 text-sm text-slate-500 max-w-xs">Mulai susun kurikulum event Anda dengan menambahkan Bab pertama.</p>
@@ -309,7 +309,7 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
             />
           </div>
           <div className="flex gap-2 pt-2">
-            <Button variant="secondary" className="flex-1 rounded-xl" onClick={closeSectionModal}>Batal</Button>
+            <Button variant="outline" className="flex-1 rounded-xl" onClick={closeSectionModal}>Batal</Button>
             <Button 
               className="flex-1 bg-[#2E417B] rounded-xl shadow-lg shadow-blue-900/10" 
               onClick={handleSaveSection}
@@ -355,9 +355,9 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
                     : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'
                   }`}
                 >
-                  {type === 'ARTICLE' && <FileText className="h-5 w-5 mb-1" />}
-                  {type === 'VIDEO' && <Video className="h-5 w-5 mb-1" />}
-                  {type === 'DOCUMENT' && <File className="h-5 w-5 mb-1" />}
+                  {type === 'ARTICLE' && <FileText className="h-7 w-7 mb-2" strokeWidth={2.5} />}
+                  {type === 'VIDEO' && <Video className="h-7 w-7 mb-2" strokeWidth={2.5} />}
+                  {type === 'DOCUMENT' && <File className="h-7 w-7 mb-2" strokeWidth={2.5} />}
                   <span className="text-[10px] font-bold uppercase">{type}</span>
                 </button>
               ))}
@@ -380,11 +380,10 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
           {materialForm.type === 'ARTICLE' && (
             <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Isi Materi (Teks/Markdown)</label>
-              <Textarea 
+              <RichTextEditor 
                 value={materialForm.content}
-                onChange={(e) => setMaterialForm({ ...materialForm, content: e.target.value })}
-                placeholder="Tulis materi di sini..."
-                className="min-h-[150px] rounded-xl border-slate-200"
+                onChange={(nextValue) => setMaterialForm({ ...materialForm, content: nextValue })}
+                placeholder="Tulis materi artikel di sini..."
               />
             </div>
           )}
@@ -414,13 +413,13 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
                   </div>
                 ) : materialForm.fileUrl ? (
                   <div className="flex flex-col items-center gap-1 text-emerald-600">
-                    <Eye className="h-8 w-8 mb-1" />
+                    <Eye className="h-10 w-10 mb-2 text-emerald-500" />
                     <span className="text-xs font-bold">File Terunggah!</span>
                     <span className="text-[10px] text-emerald-500 truncate max-w-[200px]">{materialForm.fileUrl.split('/').pop()}</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-1 text-slate-400">
-                    <Upload className="h-8 w-8 mb-1" />
+                    <Upload className="h-10 w-10 mb-2 text-blue-500" />
                     <span className="text-xs font-bold">Klik untuk Pilih File</span>
                     <span className="text-[10px]">Max size: 20MB</span>
                   </div>
@@ -461,8 +460,8 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
 
           </div>
 
-          <div className="flex gap-2 pt-4 border-t border-slate-100 mt-2">
-            <Button variant="secondary" className="flex-1 rounded-xl" onClick={closeMaterialModal}>Batal</Button>
+          <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-800 mt-2">
+            <Button variant="outline" className="flex-1 rounded-xl" onClick={closeMaterialModal}>Batal</Button>
             <Button 
               className="flex-1 bg-[#2E417B] rounded-xl shadow-lg shadow-blue-900/10" 
               onClick={handleSaveMaterial}

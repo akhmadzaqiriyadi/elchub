@@ -322,7 +322,7 @@ export default function EventDetailPage() {
               <h2 className="text-xl font-bold text-primary dark:text-slate-100 mb-6">
                 Kurikulum & Materi
               </h2>
-              <EventSyllabusView eventId={eventId} token={token ?? undefined} />
+              <EventSyllabusView eventId={eventId} token={token ?? undefined} isPreview={true} />
             </section>
 
 

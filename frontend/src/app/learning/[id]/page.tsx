@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/features/auth/auth-context';
 import { useEventSyllabus, useMaterialProgress } from '@/features/events/hooks/use-event-syllabus';
+import { useEventDetail } from '@/features/events/hooks/use-event-detail';
 import { SectionItem, MaterialItem } from '@/features/management/types';
 import { 
   ChevronLeft, 
@@ -101,20 +102,21 @@ export default function LearningPage({ params }: { params: Promise<{ id: string 
   const handlePrev = () => prevMaterial && handleMaterialClick(prevMaterial);
   const handleNext = () => nextMaterial && handleMaterialClick(nextMaterial);
 
-  if (isLoading) return <div className="flex h-screen items-center justify-center bg-slate-900 text-white font-medium">Memasuki Ruang Belajar...</div>;
+  const detailQuery = useEventDetail(eventId, token ?? undefined);
+  const eventName = detailQuery.data?.title || 'Ruang Belajar';
+
+  if (isLoading) return <div className="flex h-screen items-center justify-center bg-slate-900 text-white font-medium italic">Memasuki Ruang Belajar...</div>;
 
   return (
-
-
     <div className="flex h-screen flex-col bg-white dark:bg-slate-950">
       {/* Header */}
       <header className="flex h-16 items-center justify-between border-b border-slate-200 px-4 dark:border-slate-800 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-4">
-          <Link href={`/events/${eventId}`} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-            <ArrowLeft className="h-5 w-5" />
+          <Link href={`/events/${eventId}`} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors group">
+            <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
           </Link>
           <div className="hidden sm:block">
-            <h1 className="text-sm font-bold truncate max-w-[200px] lg:max-w-md">Ruang Belajar</h1>
+            <h1 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400">Ruang Belajar</h1>
           </div>
         </div>
         
@@ -127,12 +129,12 @@ export default function LearningPage({ params }: { params: Promise<{ id: string 
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-black tracking-tighter text-black dark:text-white">ELCHUB</span>
-            
+          <div className="flex items-center gap-2 max-w-[150px] sm:max-w-xs">
+            <span className="text-[10px] sm:text-xs font-black tracking-tighter text-black dark:text-white truncate uppercase border-l-2 border-slate-200 dark:border-slate-800 pl-3 py-1">
+              {eventName}
+            </span>
           </div>
         </div>
-
       </header>
 
       <div className="flex flex-1 overflow-hidden">
@@ -257,21 +259,56 @@ export default function LearningPage({ params }: { params: Promise<{ id: string 
                   )}
 
                   {activeMaterial.type === 'DOCUMENT' && (
-                    <div className="flex flex-col items-center justify-center p-12 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30">
-                      <FileText className="h-16 w-16 text-slate-300 mb-4" />
-                      <h3 className="text-lg font-bold mb-2">Dokumen Pendukung</h3>
-                      <p className="text-sm text-slate-500 mb-6 text-center max-w-xs">Materi ini berisi file dokumen yang perlu Anda unduh untuk dipelajari.</p>
+                    <div className="space-y-6">
                       {activeMaterial.fileUrl ? (
-                        <a 
-                          href={activeMaterial.fileUrl} 
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-bold text-white shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all"
-                        >
-                          Unduh Dokumen
-                        </a>
+                        <>
+                          {/* Preview logic */}
+                          {activeMaterial.fileUrl.toLowerCase().endsWith('.pdf') ? (
+                            <div className="aspect-[4/5] sm:aspect-[3/4] md:aspect-auto md:h-[800px] w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-slate-900">
+                              <iframe 
+                                src={`${activeMaterial.fileUrl}#view=FitH`} 
+                                className="h-full w-full border-none"
+                                title="Document Preview"
+                              />
+                            </div>
+                          ) : activeMaterial.fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                            <div className="w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-slate-900">
+                              <img 
+                                src={activeMaterial.fileUrl} 
+                                alt={activeMaterial.title} 
+                                className="w-full h-auto max-h-[800px] object-contain mx-auto" 
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center p-12 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30">
+                              <FileText className="h-16 w-16 text-slate-300 mb-4" />
+                              <h3 className="text-lg font-bold mb-2">Dokumen Pendukung</h3>
+                              <p className="text-sm text-slate-500 mb-4 text-center max-w-xs">
+                                Tipe file ini tidak mendukung preview langsung. Silakan unduh untuk melihat kontennya.
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Download Button always available */}
+                          <div className="flex flex-col items-center gap-3 py-4">
+                            <a 
+                              href={activeMaterial.fileUrl} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-3.5 font-bold text-white shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition-all hover:scale-105 active:scale-95"
+                            >
+                              <FileText className="h-5 w-5" />
+                              Unduh Dokumen Lengkap
+                            </a>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Klik tombol di atas jika preview tidak muncul</p>
+                          </div>
+                        </>
                       ) : (
-                        <span className="text-xs text-rose-500 font-bold italic">Link file tidak ditemukan</span>
+                        <div className="flex flex-col items-center justify-center p-12 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30">
+                          <FileText className="h-16 w-16 text-slate-300 mb-4" />
+                          <h3 className="text-lg font-bold mb-2">Dokumen Pendukung</h3>
+                          <span className="text-xs text-rose-500 font-bold italic">Link file tidak ditemukan atau sudah kadaluarsa</span>
+                        </div>
                       )}
                     </div>
                   )}

@@ -6,6 +6,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { ShoppingCart as CartIcon, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -70,19 +71,7 @@ export function ShoppingCart({ className }: ShoppingCartProps) {
         aria-label="Shopping Cart"
       >
         {/* Cart Icon */}
-        <svg
-          className="w-4 h-4 sm:w-5 sm:h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-          />
-        </svg>
+        <CartIcon className="w-5 h-5 sm:w-6 sm:h-6" />
 
         {/* Badge */}
         {itemCount > 0 && (
@@ -126,19 +115,7 @@ export function ShoppingCart({ className }: ShoppingCartProps) {
                         />
                       ) : (
                         <div className="w-12 h-12 rounded bg-primary/10 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
-                          <svg
-                            className="w-6 h-6 text-primary/60 dark:text-slate-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1V4zM6 14a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H7a1 1 0 01-1-1v-2z"
-                            />
-                          </svg>
+                          <Package className="w-6 h-6 text-primary/60 dark:text-slate-400" />
                         </div>
                       )}
 
@@ -162,19 +139,7 @@ export function ShoppingCart({ className }: ShoppingCartProps) {
               </div>
             ) : (
               <div className="px-4 py-8 text-center">
-                <svg
-                  className="w-12 h-12 mx-auto text-primary/30 dark:text-slate-600 mb-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
+                <CartIcon className="w-12 h-12 mx-auto text-primary/30 dark:text-slate-600 mb-2" />
                 <p className="text-sm text-primary/60 dark:text-slate-400">
                   Your cart is empty
                 </p>
