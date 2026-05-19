@@ -199,8 +199,55 @@ export function getPublicEvents(query: PublicEventsQuery = {}) {
 // LMS Public & Learning API
 // ============================================================================
 
-export function getEventSyllabus(eventId: string, token?: string) {
-  return apiRequest<any>(`/events/${eventId}/syllabus`, {
+export type SyllabusQueryParams = {
+  page?: number;
+  limit?: number;
+};
+
+export type SyllabusMaterial = {
+  id: string;
+  title: string;
+  type: string;
+  durationMin: number | null;
+  isPreview: boolean;
+  order: number;
+  content: string | null;
+  videoUrl: string | null;
+  fileUrl: string | null;
+  userProgress: {
+    isCompleted: boolean;
+    completedAt: string | null;
+  } | null;
+};
+
+export type SyllabusSection = {
+  id: string;
+  title: string;
+  order: number;
+  materials: SyllabusMaterial[];
+};
+
+export type EventSyllabusPayload = {
+  success: boolean;
+  data: {
+    sections: SyllabusSection[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+};
+
+export function getEventSyllabus(eventId: string, token?: string, params?: SyllabusQueryParams) {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.set('page', String(params.page));
+  if (params?.limit) queryParams.set('limit', String(params.limit));
+  
+  const queryString = queryParams.size > 0 ? `?${queryParams.toString()}` : '';
+  
+  return apiRequest<EventSyllabusPayload>(`/events/${eventId}/syllabus${queryString}`, {
     method: 'GET',
     ...(token ? { token } : {}),
   });
@@ -216,6 +263,103 @@ export function completeMaterial(materialId: string, token: string) {
 export function uncompleteMaterial(materialId: string, token: string) {
   return apiRequest<any>(`/events/materials/${materialId}/complete`, {
     method: 'DELETE',
+    token,
+  });
+}
+
+// ============================================================================
+// Assignments API
+// ============================================================================
+
+export type AssignmentQueryParams = {
+  page?: number;
+  limit?: number;
+};
+
+export type AssignmentSubmission = {
+  status: string;
+  answerText: string | null;
+  answerUrl: string | null;
+  submittedAt: string;
+  score: number | null;
+  feedback: string | null;
+  gradedAt: string | null;
+};
+
+export type AssignmentSection = {
+  id: string;
+  title: string;
+  order: number;
+} | null;
+
+export type AssignmentItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  instructions: string | null;
+  releaseAt: string | null;
+  dueAt: string | null;
+  allowLate: boolean;
+  maxScore: number | null;
+  isPublished: boolean;
+  order: number;
+  section: AssignmentSection;
+  userSubmission: AssignmentSubmission | null;
+};
+
+export type EventAssignmentsPayload = {
+  success: boolean;
+  data: {
+    items: AssignmentItem[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+};
+
+export type AssignmentDetailPayload = {
+  success: boolean;
+  data: AssignmentItem;
+};
+
+export type AssignmentSubmissionInput = {
+  answerText?: string | null;
+  answerUrl?: string | null;
+};
+
+export type AssignmentSubmissionPayload = {
+  success: boolean;
+  message: string;
+  data: AssignmentSubmission;
+};
+
+export function getEventAssignments(eventId: string, token?: string, params?: AssignmentQueryParams) {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.set('page', String(params.page));
+  if (params?.limit) queryParams.set('limit', String(params.limit));
+
+  const queryString = queryParams.size > 0 ? `?${queryParams.toString()}` : '';
+
+  return apiRequest<EventAssignmentsPayload>(`/events/${eventId}/assignments${queryString}`, {
+    method: 'GET',
+    ...(token ? { token } : {}),
+  });
+}
+
+export function getEventAssignment(eventId: string, assignmentId: string, token?: string) {
+  return apiRequest<AssignmentDetailPayload>(`/events/${eventId}/assignments/${assignmentId}`, {
+    method: 'GET',
+    ...(token ? { token } : {}),
+  });
+}
+
+export function submitAssignment(assignmentId: string, input: AssignmentSubmissionInput, token: string) {
+  return apiRequest<AssignmentSubmissionPayload>(`/events/assignments/${assignmentId}/submit`, {
+    method: 'POST',
+    body: input,
     token,
   });
 }

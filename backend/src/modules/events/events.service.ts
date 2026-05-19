@@ -1342,7 +1342,13 @@ export async function deleteEventMaterial(actor: AuthActor, eventId: string, mat
   });
 }
 
-export async function getEventSyllabus(eventId: string, userId?: string, showInactive = false) {
+export async function getEventSyllabus(
+  eventId: string,
+  userId?: string,
+  showInactive = false,
+  page = 1,
+  limit = 20,
+) {
   let isAuthorized = false;
   let isOwner = false;
 
@@ -1356,7 +1362,6 @@ export async function getEventSyllabus(eventId: string, userId?: string, showIna
       isAuthorized = true;
       isOwner = true;
     } else {
-
       const registration = await prisma.eventRegistration.findUnique({
         where: { eventId_userId: { eventId, userId } },
         select: { status: { select: { code: true } }, paymentStatus: true },
@@ -1368,13 +1373,25 @@ export async function getEventSyllabus(eventId: string, userId?: string, showIna
     }
   }
 
+  // Get total sections count
+  const totalSections = await prisma.eventSection.count({
+    where: {
+      eventId,
+      ...(isOwner || showInactive ? {} : { isActive: true }),
+    },
+  });
+
+  const totalPages = Math.ceil(totalSections / limit);
+
+  // Get paginated sections
   const sections = await prisma.eventSection.findMany({
-    where: { 
-      eventId, 
-      ...(isOwner || showInactive ? {} : { isActive: true }) 
+    where: {
+      eventId,
+      ...(isOwner || showInactive ? {} : { isActive: true }),
     },
     orderBy: { order: 'asc' },
-
+    skip: (page - 1) * limit,
+    take: limit,
     include: {
       materials: {
         orderBy: { order: 'asc' },
@@ -1388,11 +1405,14 @@ export async function getEventSyllabus(eventId: string, userId?: string, showIna
       where: { userId, material: { section: { eventId } } },
     });
     for (const p of userProgress) {
-      progressMap.set(p.materialId, { isCompleted: p.isCompleted, completedAt: p.completedAt });
+      progressMap.set(p.materialId, {
+        isCompleted: p.isCompleted,
+        completedAt: p.completedAt ? p.completedAt.toISOString() : null,
+      });
     }
   }
 
-  return sections.map((sec) => ({
+  const mappedSections = sections.map((sec) => ({
     id: sec.id,
     title: sec.title,
     order: sec.order,
@@ -1412,6 +1432,11 @@ export async function getEventSyllabus(eventId: string, userId?: string, showIna
       };
     }),
   }));
+
+  return {
+    sections: mappedSections,
+    pagination: buildPaginationMeta({ page, limit, total: totalSections }),
+  };
 }
 
 export async function markMaterialAsCompleted(actor: AuthActor, materialId: string) {

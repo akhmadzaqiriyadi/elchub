@@ -12,7 +12,15 @@ import { Spinner } from '@/components/ui/spinner';
 interface FilterState {
   category: string | null;
   type: string | null;
+  level: string | null;
   searchQuery: string;
+  isFree: boolean | null;
+  minPrice: number | null;
+  maxPrice: number | null;
+  startDate: string | null;
+  endDate: string | null;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
 }
 
 const categoryMap: Record<string, string> = {
@@ -29,17 +37,39 @@ const modeMap: Record<string, string> = {
   'Hybrid': 'hybrid'
 };
 
+const levelMap: Record<string, string> = {
+  'Beginner': 'beginner',
+  'Intermediate': 'intermediate',
+  'Advanced': 'advanced'
+};
+
 export default function EventsPage() {
   const [filters, setFilters] = useState<FilterState>({
     category: null,
     type: null,
+    level: null,
     searchQuery: '',
+    isFree: null,
+    minPrice: null,
+    maxPrice: null,
+    startDate: null,
+    endDate: null,
+    sortBy: 'createdAt',
+    sortOrder: 'desc',
   });
 
   const { data, isLoading } = usePublicEvents({
     q: filters.searchQuery || undefined,
     typeSlug: filters.category ? categoryMap[filters.category] : undefined,
     modeSlug: filters.type ? modeMap[filters.type] : undefined,
+    levelSlug: filters.level ? levelMap[filters.level] : undefined,
+    isFree: filters.isFree || undefined,
+    minPrice: filters.minPrice || undefined,
+    maxPrice: filters.maxPrice || undefined,
+    startDate: filters.startDate || undefined,
+    endDate: filters.endDate || undefined,
+    sortBy: filters.sortBy,
+    sortOrder: filters.sortOrder,
     statusCode: 'PUBLISHED',
   });
 

@@ -14,6 +14,13 @@ enum UserRole {
   ADMIN
 }
 
+enum AssignmentSubmissionStatus {
+  DRAFT
+  SUBMITTED
+  GRADED
+  RETURNED
+}
+
 model User {
   id              String    @id @default(cuid())
   name            String?
@@ -31,6 +38,8 @@ model User {
   organizedEvents     Event[]              @relation("EventOrganizer")
   registrations       EventRegistration[]
   materialProgresses  MaterialProgress[]
+  assignmentSubmissions AssignmentSubmission[]
+  gradedAssignmentSubmissions AssignmentSubmission[] @relation("AssignmentSubmissionGrader")
 
   @@map("users")
 }
@@ -157,6 +166,7 @@ model Event {
   topics        EventTopicMap[]
   registrations EventRegistration[]
   sections      EventSection[]
+  assignments   EventAssignment[]
 
   @@index([organizerId])
   @@index([typeId])
@@ -249,6 +259,7 @@ model EventSection {
 
   event     Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
   materials EventMaterial[]
+  assignments EventAssignment[]
 
   @@index([eventId])
   @@index([isActive, order])
@@ -293,4 +304,56 @@ model MaterialProgress {
   @@index([userId])
   @@index([materialId])
   @@map("material_progress")
+}
+
+model EventAssignment {
+  id           String   @id @default(cuid())
+  eventId      String
+  sectionId    String?
+  title        String
+  description  String?  @db.Text
+  instructions  String?  @db.Text
+  releaseAt    DateTime?
+  dueAt        DateTime?
+  allowLate    Boolean  @default(false)
+  maxScore     Int?
+  isPublished  Boolean  @default(true)
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  event        Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  section      EventSection?       @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+  submissions   AssignmentSubmission[]
+
+  @@index([eventId])
+  @@index([sectionId])
+  @@index([isPublished, order])
+  @@map("event_assignments")
+}
+
+model AssignmentSubmission {
+  id           String                     @id @default(cuid())
+  assignmentId String
+  userId       String
+  answerText   String?                    @db.Text
+  answerUrl    String?
+  status       AssignmentSubmissionStatus @default(SUBMITTED)
+  submittedAt  DateTime                   @default(now())
+  score        Int?
+  feedback     String?                    @db.Text
+  gradedBy     String?
+  gradedAt     DateTime?
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+
+  assignment   EventAssignment            @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  user         User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grader       User?                      @relation("AssignmentSubmissionGrader", fields: [gradedBy], references: [id], onDelete: SetNull)
+
+  @@unique([assignmentId, userId])
+  @@index([assignmentId])
+  @@index([userId])
+  @@index([status])
+  @@map("assignment_submissions")
 }

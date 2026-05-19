@@ -106,7 +106,7 @@ describe('pre-integration events lms api', () => {
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
 
-    const sections = body.data as any[];
+    const sections = body.data.sections as any[];
     const testingSection = sections.find((s) => s.id === sectionId);
     expect(testingSection).toBeDefined();
 
@@ -114,6 +114,8 @@ describe('pre-integration events lms api', () => {
     expect(testingMaterial).toBeDefined();
     // Because isPreview is false and we hit it without token, videoUrl should be null
     expect(testingMaterial.videoUrl).toBeNull();
+    expect(body.data.pagination.page).toBe(1);
+    expect(body.data.pagination.limit).toBe(10);
   });
 
   it('POST /api/events/materials/:materialId/complete should mark as completed for registered user', async () => {

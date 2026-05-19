@@ -2,6 +2,7 @@ import { UserRole } from '@prisma/client';
 import { Elysia, t } from 'elysia';
 
 import { requireAuth, requireRole } from '../../lib/rbac';
+import { normalizePagination } from '../../lib/list-query';
 import {
   createManagementEvent,
   createManagementMasterData,
@@ -395,6 +396,54 @@ const myEventsSuccessSchema = t.Object({
   }),
 });
 
+const syllabusErrorSchema = t.Object({
+  success: t.Literal(false),
+  message: t.String(),
+});
+
+const syllabusQuerySchema = t.Object({
+  page: t.Optional(t.Numeric()),
+  limit: t.Optional(t.Numeric()),
+});
+
+const syllabusSuccessSchema = t.Object({
+  success: t.Literal(true),
+  data: t.Object({
+    sections: t.Array(
+      t.Object({
+        id: t.String(),
+        title: t.String(),
+        order: t.Number(),
+        materials: t.Array(
+          t.Object({
+            id: t.String(),
+            title: t.String(),
+            type: t.String(),
+            durationMin: t.Nullable(t.Number()),
+            isPreview: t.Boolean(),
+            order: t.Number(),
+            content: t.Nullable(t.String()),
+            videoUrl: t.Nullable(t.String()),
+            fileUrl: t.Nullable(t.String()),
+            userProgress: t.Nullable(
+              t.Object({
+                isCompleted: t.Boolean(),
+                completedAt: t.Nullable(t.String({ format: 'date-time' })),
+              }),
+            ),
+          }),
+        ),
+      }),
+    ),
+    pagination: t.Object({
+      page: t.Number(),
+      limit: t.Number(),
+      total: t.Number(),
+      totalPages: t.Number(),
+    }),
+  }),
+});
+
 const myEventsQuerySchema = t.Object({
   q: t.Optional(t.String()),
   statusCode: t.Optional(t.String()),
@@ -567,7 +616,7 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
   )
   .get(
     '/api/events/:id/syllabus',
-    async ({ params, headers, set }) => {
+    async ({ params, headers, query, set }) => {
       try {
         let userId: string | undefined;
         if (headers.authorization) {
@@ -577,7 +626,8 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
           }
         }
         
-        const data = await getEventSyllabus(params.id, userId);
+        const pagination = normalizePagination({ page: query.page, limit: query.limit });
+        const data = await getEventSyllabus(params.id, userId, false, pagination.page, pagination.limit);
 
         return {
           success: true as const,
@@ -593,10 +643,15 @@ export const eventsRoute = new Elysia({ name: 'events-route' })
     },
     {
       params: t.Object({ id: t.String() }),
+      query: syllabusQuerySchema,
+      response: {
+        200: syllabusSuccessSchema,
+        500: syllabusErrorSchema,
+      },
       detail: {
         tags: ['Events'],
         summary: 'Get event syllabus',
-        description: 'Get syllabus/curriculum for an event with masked content for unauthorized users.',
+        description: 'Get syllabus/curriculum for an event with pagination support.',
       },
     },
   )

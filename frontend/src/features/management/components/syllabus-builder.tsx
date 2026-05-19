@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { useAuth } from '@/features/auth/auth-context';
 import { useEventSyllabus } from '@/features/events/hooks/use-event-syllabus';
 import { useManagementSyllabus } from '../hooks/use-management-syllabus';
-import { SectionItem, MaterialItem } from '../types';
+import { MaterialItem } from '../types';
 import { Plus, GripVertical, Video, FileText, HelpCircle, Eye, Lock, Pencil, Trash2, X, Upload, File } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BaseModal } from '@/components/ui/modal';
@@ -15,7 +15,8 @@ import { RichTextEditor } from '@/components/ui/rich-text-editor';
 export function SyllabusBuilder({ eventId }: { eventId: string }) {
   const { token } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { data: sections, isLoading, refetch } = useEventSyllabus(eventId, token ?? undefined);
+  const { data: syllabusData, isLoading, refetch } = useEventSyllabus(eventId, token ?? undefined);
+  const sections = syllabusData?.sections ?? [];
   const { 
     createSection, updateSection, deleteSection, 
     createMaterial, updateMaterial, deleteMaterial,
@@ -28,8 +29,8 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
   // Edit States
-  const [editingSection, setEditingSection] = useState<SectionItem | null>(null);
-  const [editingMaterial, setEditingMaterial] = useState<MaterialItem | null>(null);
+  const [editingSection, setEditingSection] = useState<{ id: string; title: string } | null>(null);
+  const [editingMaterial, setEditingMaterial] = useState<any | null>(null);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'section' | 'material'; id: string } | null>(null);
 
@@ -100,7 +101,7 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
     refetch();
   };
 
-  const openSectionModal = (section?: SectionItem) => {
+  const openSectionModal = (section?: { id: string; title: string }) => {
     if (section) {
       setEditingSection(section);
       setSectionTitle(section.title);
@@ -117,7 +118,7 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
     setSectionTitle('');
   };
 
-  const openMaterialModal = (sectionId: string, material?: MaterialItem) => {
+  const openMaterialModal = (sectionId: string, material?: any) => {
     setActiveSectionId(sectionId);
     if (material) {
       setEditingMaterial(material);
@@ -182,7 +183,7 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
 
 
       <div className="space-y-6">
-        {sections?.map((section: SectionItem) => (
+        {sections?.map((section) => (
           <div key={section.id} className="group rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 overflow-hidden transition-all hover:shadow-md">
             <div className="flex items-center justify-between bg-slate-50/50 px-5 py-4 dark:bg-slate-800/50">
               <div className="flex items-center gap-3">
@@ -229,7 +230,7 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
                   </button>
                 </div>
               ) : (
-                section.materials.map((material: MaterialItem) => (
+                section.materials.map((material) => (
                   <div key={material.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group/item">
                     <div className="flex items-center gap-4">
                       <GripVertical className="h-5 w-5 text-slate-300 cursor-move opacity-0 group-hover/item:opacity-100 transition-opacity" />
@@ -249,7 +250,7 @@ export function SyllabusBuilder({ eventId }: { eventId: string }) {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1">
                       <Button 
                         variant="ghost" 
                         size="sm" 

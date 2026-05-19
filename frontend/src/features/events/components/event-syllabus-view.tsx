@@ -15,7 +15,8 @@ export function EventSyllabusView({
   token?: string; 
   isPreview?: boolean;
 }) {
-  const { data: sections, isLoading } = useEventSyllabus(eventId, token);
+  const { data: syllabusData, isLoading } = useEventSyllabus(eventId, token);
+  const sections = syllabusData?.sections;
 
   if (isLoading) return <div className="animate-pulse space-y-4">
     {[1, 2, 3].map(i => <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800" />)}
@@ -37,7 +38,7 @@ export function EventSyllabusView({
 
   return (
     <div className="space-y-4">
-      {displayedSections.map((section: SectionItem) => {
+      {displayedSections.map((section) => {
         const materials = isPreview ? section.materials.slice(0, 2) : section.materials;
         const hasMoreMaterials = isPreview && section.materials.length > 2;
 
@@ -52,7 +53,7 @@ export function EventSyllabusView({
               {materials.length === 0 ? (
                 <div className="px-5 py-4 text-xs text-slate-400 italic">Belum ada materi di bab ini.</div>
               ) : (
-                materials.map((material: MaterialItem) => {
+                materials.map((material) => {
                   // Logic to check if content is accessible
                   const isLocked = !material.isPreview && !token; 
                   const isCompleted = material.userProgress?.isCompleted;

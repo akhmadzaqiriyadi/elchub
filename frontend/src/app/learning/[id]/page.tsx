@@ -34,10 +34,11 @@ export default function LearningPage({ params }: { params: Promise<{ id: string 
   const router = useRouter();
   const materialId = searchParams.get('materialId');
 
-  const { data: sections, isLoading, refetch } = useEventSyllabus(eventId, token ?? undefined);
+  const { data: syllabusData, isLoading, refetch } = useEventSyllabus(eventId, token ?? undefined);
+  const sections = syllabusData?.sections;
   const { complete, uncomplete } = useMaterialProgress(token ?? '');
 
-  const [activeMaterial, setActiveMaterial] = useState<MaterialItem | null>(null);
+  const [activeMaterial, setActiveMaterial] = useState<any | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Set active material from URL or default to first material
@@ -46,7 +47,7 @@ export default function LearningPage({ params }: { params: Promise<{ id: string 
       if (materialId) {
         // Find material by ID
         for (const section of sections) {
-          const found = section.materials.find((m: MaterialItem) => m.id === materialId);
+          const found = section.materials.find((m) => m.id === materialId);
           if (found) {
             setActiveMaterial(found);
             return;
@@ -60,7 +61,7 @@ export default function LearningPage({ params }: { params: Promise<{ id: string 
     }
   }, [sections, materialId]);
 
-  const handleMaterialClick = (material: MaterialItem) => {
+  const handleMaterialClick = (material: any) => {
     setActiveMaterial(material);
     router.push(`/learning/${eventId}?materialId=${material.id}`);
     if (window.innerWidth < 1024) setIsSidebarOpen(false);
@@ -153,13 +154,13 @@ export default function LearningPage({ params }: { params: Promise<{ id: string 
               </Button>
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-              {sections?.map((section: SectionItem, idx: number) => (
+              {sections?.map((section, idx: number) => (
                 <div key={section.id} className="mb-2">
                   <div className="bg-slate-100/50 px-4 py-2 text-[10px] font-bold text-slate-500 uppercase dark:bg-slate-800/50">
                     Bab {idx + 1}: {section.title}
                   </div>
                   <div className="p-1 space-y-0.5">
-                    {section.materials.map((material: MaterialItem) => (
+                    {section.materials.map((material) => (
                       <button
                         key={material.id}
                         onClick={() => handleMaterialClick(material)}

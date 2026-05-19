@@ -6,6 +6,7 @@ import { env } from './config/env';
 import { logger } from './lib/logger';
 import { securityHeaders } from './lib/security-headers';
 import { authRoute } from './modules/auth/auth.route';
+import { assignmentsManagementRoute, assignmentsRoute } from './modules/assignments/assignments.route';
 import { eventsManagementRoute, eventsRoute } from './modules/events/events.route';
 import { healthRoute } from './modules/health/health.route';
 import { rootRoute } from './modules/root/root.route';
@@ -83,6 +84,8 @@ export const app = new Elysia({ name: 'elchub-backend' })
   })
   .use(rootRoute)
   .use(healthRoute)
+  .use(assignmentsRoute)
+  .use(assignmentsManagementRoute)
   .use(eventsRoute)
   .use(eventsManagementRoute)
   .use(authRoute)
