@@ -123,7 +123,7 @@ export default function EventRegistrationPage() {
         <div className="mb-6 flex items-center justify-between">
           <Button
             onClick={() => router.push(`/events/${eventId}`)}
-            className="flex items-center gap-2 text-primary dark:text-blue-400 hover:bg-slate-200 dark:hover:bg-slate-800"
+            className="flex items-center gap-2 text-primary dark:text-white hover:bg-slate-200 dark:hover:bg-slate-800"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -175,7 +175,7 @@ export default function EventRegistrationPage() {
                             className="absolute bottom-0 left-1/2 -z-10 h-0 w-0 -translate-x-1/2 opacity-0"
                             required={field.required}
                             value={(customAnswers[field.id] as string) || ''}
-                            onChange={() => {}}
+                            onChange={() => { }}
                             tabIndex={-1}
                           />
                         </div>

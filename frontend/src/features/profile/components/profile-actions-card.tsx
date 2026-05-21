@@ -18,34 +18,31 @@ export function ProfileActionsCard({
   onChangePasswordClick,
 }: ProfileActionsCardProps) {
   return (
-    <div className="rounded-xl border border-primary/15 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-      {/* Header */}
-      <h2 className="mb-4 text-lg font-semibold text-primary dark:text-slate-100">
-        Quick Actions
-      </h2>
+    <div className="grid gap-3 sm:grid-cols-2">
+      <Button
+        onClick={onEditClick}
+        variant="outline" // Mengubah varian ke outline agar border-nya terlihat jelas
+        className="rounded-lg bg-slate-100 text-slate-900 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+      >
+        Edit Profile
+      </Button>
 
-      {/* Actions Grid */}
-      <div className="grid gap-3 sm:grid-cols-2">
+      <Button
+        onClick={onChangePasswordClick}
+        variant="outline"
+        className="rounded-lg bg-slate-100 text-slate-900 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+      >
+        Change Password
+      </Button>
+
+      <Link href="/settings" className="col-span-1 sm:col-span-2">
         <Button
-          onClick={onEditClick}
-          variant="secondary"
-          className="rounded-lg"
+          variant="outline"
+          className="w-full rounded-lg bg-slate-100 text-slate-900 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
         >
-          Edit Profile
+          Settings
         </Button>
-        <Button
-          onClick={onChangePasswordClick}
-          variant="secondary"
-          className="rounded-lg"
-        >
-          Change Password
-        </Button>
-        <Link href="/settings" className="col-span-1 sm:col-span-2">
-          <Button variant="secondary" className="w-full rounded-lg">
-            Settings
-          </Button>
-        </Link>
-      </div>
+      </Link>
     </div>
   );
 }

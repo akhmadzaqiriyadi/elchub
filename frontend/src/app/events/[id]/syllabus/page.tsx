@@ -39,7 +39,7 @@ export default function EventSyllabusPage() {
         </div>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-950/50 shadow-xl shadow-slate-200/50 dark:shadow-none">
-          <EventSyllabusView eventId={eventId} token={token ?? undefined} />
+          <EventSyllabusView eventId={event?.id || eventId} token={token ?? undefined} />
         </div>
         
         <div className="mt-12 text-center p-8 rounded-3xl bg-slate-900 dark:bg-blue-600 text-white shadow-2xl shadow-blue-500/20">

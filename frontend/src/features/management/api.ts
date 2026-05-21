@@ -24,6 +24,10 @@ import type {
   ManagementRegistrationMutationPayload,
   SectionMutationInput,
   MaterialMutationInput,
+  ManagementAssignmentListPayload,
+  ManagementSubmissionListPayload,
+  AssignmentMutationInput,
+  AssignmentGradeInput,
 } from './types';
 
 function toQueryString(params: EventListParams) {
@@ -312,3 +316,59 @@ export function uploadManagementEventMaterial(file: File, token: string) {
     token,
   });
 }
+
+// ============================================================================
+// Event Assignments Management API
+// ============================================================================
+
+export function getManagementAssignments(eventId: string, token: string, params?: { page?: number; limit?: number }) {
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set('page', String(params.page));
+  if (params?.limit) searchParams.set('limit', String(params.limit));
+  const query = searchParams.toString();
+  const suffix = query ? `?${query}` : '';
+
+  return apiRequest<ManagementAssignmentListPayload>(`/management/events/${eventId}/assignments${suffix}`, {
+    method: 'GET',
+    token,
+  });
+}
+
+export function createManagementAssignment(eventId: string, input: AssignmentMutationInput, token: string) {
+  return apiRequest<any>(`/management/events/${eventId}/assignments`, {
+    method: 'POST',
+    body: input,
+    token,
+  });
+}
+
+export function updateManagementAssignment(eventId: string, assignmentId: string, input: AssignmentMutationInput, token: string) {
+  return apiRequest<any>(`/management/events/${eventId}/assignments/${assignmentId}`, {
+    method: 'PUT',
+    body: input,
+    token,
+  });
+}
+
+export function deleteManagementAssignment(eventId: string, assignmentId: string, token: string) {
+  return apiRequest<any>(`/management/events/${eventId}/assignments/${assignmentId}`, {
+    method: 'DELETE',
+    token,
+  });
+}
+
+export function getAssignmentSubmissions(eventId: string, assignmentId: string, token: string) {
+  return apiRequest<ManagementSubmissionListPayload>(`/management/events/${eventId}/assignments/${assignmentId}/submissions`, {
+    method: 'GET',
+    token,
+  });
+}
+
+export function gradeAssignmentSubmission(eventId: string, assignmentId: string, userId: string, input: AssignmentGradeInput, token: string) {
+  return apiRequest<any>(`/management/events/${eventId}/assignments/${assignmentId}/submissions/${userId}/grade`, {
+    method: 'PATCH',
+    body: input,
+    token,
+  });
+}
+

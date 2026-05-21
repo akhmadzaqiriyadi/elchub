@@ -449,6 +449,53 @@ export async function submitAssignment(actor: AuthActor, assignmentId: string, p
   return toSubmissionView(submission);
 }
 
+export async function listAssignmentSubmissions(
+  actor: AuthActor,
+  eventId: string,
+  assignmentId: string,
+) {
+  await verifyEventOwnership(actor, eventId);
+
+  const assignment = await prisma.eventAssignment.findFirst({
+    where: { id: assignmentId, eventId },
+    select: { id: true },
+  });
+
+  if (!assignment) {
+    throw new Error('Assignment not found');
+  }
+
+  const submissions = await prisma.assignmentSubmission.findMany({
+    where: { assignmentId },
+    orderBy: { submittedAt: 'desc' },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePhotoUrl: true,
+        },
+      },
+    },
+  });
+
+  return submissions.map((sub) => ({
+    id: sub.id,
+    assignmentId: sub.assignmentId,
+    userId: sub.userId,
+    answerText: sub.answerText,
+    answerUrl: sub.answerUrl,
+    status: sub.status,
+    submittedAt: sub.submittedAt.toISOString(),
+    score: sub.score,
+    feedback: sub.feedback,
+    gradedBy: sub.gradedBy,
+    gradedAt: sub.gradedAt ? sub.gradedAt.toISOString() : null,
+    user: sub.user,
+  }));
+}
+
 export async function gradeAssignmentSubmission(
   actor: AuthActor,
   eventId: string,

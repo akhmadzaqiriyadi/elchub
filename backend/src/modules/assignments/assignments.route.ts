@@ -12,6 +12,7 @@ import {
   listEventAssignments,
   submitAssignment,
   updateEventAssignment,
+  listAssignmentSubmissions,
 } from './assignments.service';
 
 const sectionSchema = t.Nullable(
@@ -100,6 +101,33 @@ const mutationResultSchema = t.Object({
 const errorSchema = t.Object({
   success: t.Literal(false),
   message: t.String(),
+});
+
+const userSchema = t.Object({
+  id: t.String(),
+  name: t.Nullable(t.String()),
+  email: t.String(),
+  profilePhotoUrl: t.Nullable(t.String()),
+});
+
+const submissionItemSchema = t.Object({
+  id: t.String(),
+  assignmentId: t.String(),
+  userId: t.String(),
+  answerText: t.Nullable(t.String()),
+  answerUrl: t.Nullable(t.String()),
+  status: t.String(),
+  submittedAt: t.String({ format: 'date-time' }),
+  score: t.Nullable(t.Number()),
+  feedback: t.Nullable(t.String()),
+  gradedBy: t.Nullable(t.String()),
+  gradedAt: t.Nullable(t.String({ format: 'date-time' })),
+  user: userSchema,
+});
+
+const submissionsListSuccessSchema = t.Object({
+  success: t.Literal(true),
+  data: t.Array(submissionItemSchema),
 });
 
 function mapAssignmentError(error: unknown) {
@@ -370,6 +398,38 @@ export const assignmentsManagementRoute = new Elysia().group('/api/management', 
         params: t.Object({ id: t.String(), assignmentId: t.String() }),
         response: {
           200: mutationResultSchema,
+          400: errorSchema,
+          403: errorSchema,
+          404: errorSchema,
+        },
+      },
+    )
+    .get(
+      '/events/:id/assignments/:assignmentId/submissions',
+      async ({ headers, params, set }) => {
+        const authResult = await requireRole(headers, [UserRole.ORGANIZER, UserRole.MENTOR, UserRole.ADMIN]);
+        if (!authResult.ok) {
+          set.status = authResult.status;
+          return authResult.body;
+        }
+
+        try {
+          const data = await listAssignmentSubmissions(
+            { userId: authResult.user.id, role: authResult.user.role as any },
+            params.id,
+            params.assignmentId,
+          );
+          return { success: true as const, data };
+        } catch (error) {
+          const mapped = mapAssignmentError(error);
+          set.status = mapped.status;
+          return { success: false as const, message: mapped.message };
+        }
+      },
+      {
+        params: t.Object({ id: t.String(), assignmentId: t.String() }),
+        response: {
+          200: submissionsListSuccessSchema,
           400: errorSchema,
           403: errorSchema,
           404: errorSchema,

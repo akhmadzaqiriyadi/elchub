@@ -6,6 +6,7 @@
 import { Button } from '@/components/ui/button';
 import { EventBadge } from './event-badge';
 import Link from 'next/link';
+import { Calendar } from 'lucide-react';
 
 interface EventCardProps {
   id: string;
@@ -91,9 +92,7 @@ export function EventCard({
         <div className="space-y-2 mt-4 text-sm text-primary/60 dark:text-slate-400">
           {/* Date & Time */}
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v2h16V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" />
-            </svg>
+            <Calendar className="w-4 h-4 text-primary/60 dark:text-slate-400" />
             <span>
               {date} • {time}
             </span>

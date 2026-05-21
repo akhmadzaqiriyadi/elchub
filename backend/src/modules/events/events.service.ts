@@ -1343,22 +1343,32 @@ export async function deleteEventMaterial(actor: AuthActor, eventId: string, mat
 }
 
 export async function getEventSyllabus(
-  eventId: string,
+  eventIdOrSlug: string,
   userId?: string,
   showInactive = false,
   page = 1,
   limit = 20,
 ) {
+  // Resolve event by id OR slug so this works with slugs from URLs
+  const resolvedEvent = await prisma.event.findFirst({
+    where: { OR: [{ id: eventIdOrSlug }, { slug: eventIdOrSlug }] },
+    select: { id: true, organizerId: true },
+  });
+
+  if (!resolvedEvent) {
+    return {
+      sections: [],
+      pagination: buildPaginationMeta({ page, limit, total: 0 }),
+    };
+  }
+
+  const eventId = resolvedEvent.id;
+
   let isAuthorized = false;
   let isOwner = false;
 
   if (userId) {
-    const event = await prisma.event.findFirst({
-      where: { id: eventId, organizerId: userId },
-      select: { id: true },
-    });
-
-    if (event) {
+    if (resolvedEvent.organizerId === userId) {
       isAuthorized = true;
       isOwner = true;
     } else {

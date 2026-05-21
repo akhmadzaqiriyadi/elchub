@@ -8,5 +8,7 @@ export { UserFormModal } from './components/user-form-modal';
 export { UserDeleteConfirmModal } from './components/user-delete-confirm-modal';
 export { UserFilters } from './components/user-filters';
 export { SyllabusBuilder } from './components/syllabus-builder';
+export { AssignmentsBuilder } from './components/assignments-builder';
 
 export { useManagementSyllabus } from './hooks/use-management-syllabus';
+export { useManagementAssignments, useAssignmentSubmissions } from './hooks/use-management-assignments';

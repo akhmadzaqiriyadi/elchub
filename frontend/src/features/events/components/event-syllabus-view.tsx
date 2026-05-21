@@ -8,13 +8,16 @@ import Link from 'next/link';
 
 export function EventSyllabusView({ 
   eventId, 
+  eventSlug,
   token, 
   isPreview = false 
 }: { 
   eventId: string; 
+  eventSlug?: string;
   token?: string; 
   isPreview?: boolean;
 }) {
+  const linkBase = eventSlug || eventId;
   const { data: syllabusData, isLoading } = useEventSyllabus(eventId, token);
   const sections = syllabusData?.sections;
 
@@ -119,7 +122,7 @@ export function EventSyllabusView({
 
       {shouldShowMoreButton && (
         <Link 
-          href={`/events/${eventId}/syllabus`}
+          href={`/events/${linkBase}/syllabus`}
           className="flex w-full items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 p-4 text-sm font-bold text-slate-500 transition-all hover:border-[#2E417B] hover:bg-blue-50 hover:text-[#2E417B] dark:border-slate-800 dark:hover:border-blue-500 dark:hover:bg-blue-900/20 dark:hover:text-blue-400"
         >
           Lihat Selengkapnya

@@ -338,3 +338,79 @@ export type SyllabusPayload = {
   data: SectionItem[];
 };
 
+// ============================================================================
+// Event Assignments Management Types
+// ============================================================================
+
+export type ManagementAssignmentItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  instructions: string | null;
+  releaseAt: string | null;
+  dueAt: string | null;
+  allowLate: boolean;
+  maxScore: number | null;
+  isPublished: boolean;
+  order: number;
+  section: {
+    id: string;
+    title: string;
+    order: number;
+  } | null;
+  userSubmission: any;
+};
+
+export type ManagementSubmissionItem = {
+  id: string;
+  assignmentId: string;
+  userId: string;
+  answerText: string | null;
+  answerUrl: string | null;
+  status: string;
+  submittedAt: string;
+  score: number | null;
+  feedback: string | null;
+  gradedBy: string | null;
+  gradedAt: string | null;
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    profilePhotoUrl: string | null;
+  };
+};
+
+export type AssignmentMutationInput = {
+  title: string;
+  description?: string | null;
+  instructions?: string | null;
+  sectionId?: string | null;
+  releaseAt?: string | null;
+  dueAt?: string | null;
+  allowLate?: boolean;
+  maxScore?: number | null;
+  isPublished?: boolean;
+  order?: number;
+};
+
+export type AssignmentGradeInput = {
+  score?: number | null;
+  feedback?: string | null;
+  status?: 'GRADED' | 'RETURNED';
+};
+
+export type ManagementAssignmentListPayload = {
+  success: true;
+  data: {
+    items: ManagementAssignmentItem[];
+    pagination: PaginationMeta;
+  };
+};
+
+export type ManagementSubmissionListPayload = {
+  success: true;
+  data: ManagementSubmissionItem[];
+};
+
+

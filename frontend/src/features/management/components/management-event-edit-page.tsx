@@ -50,6 +50,12 @@ export function ManagementEventEditPage({ eventId }: { eventId: string }) {
             Kelola Silabus
           </Link>
           <Link
+            href={`/management/events/${eventId}/assignments`}
+            className="rounded-lg bg-[#2E417B] px-3 py-2 text-sm font-medium text-white hover:bg-[#23306a] dark:bg-blue-600 dark:hover:bg-blue-700"
+          >
+            Kelola Tugas
+          </Link>
+          <Link
             href="/management/events"
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-200"
           >
